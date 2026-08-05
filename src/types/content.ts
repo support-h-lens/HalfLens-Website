@@ -23,6 +23,9 @@ export interface ProjectItem {
   id: string
   title: string
   category: string
+  client: string
+  role: string
+  format: string
   year: string
   palette: 'amber' | 'violet' | 'cyan' | 'crimson' | 'silver'
   image?: string

@@ -49,6 +49,16 @@ export const servicesContent = {
     'من لحظة كتابة الفكرة حتى آخر معالجة لونية؛ نبني فرقًا مرنة لكل مشروع ونحافظ على رؤية واحدة متماسكة.',
 }
 
+export const productionStages = [
+  { id: '01', label: 'IDEA' },
+  { id: '02', label: 'DIRECTION' },
+  { id: '03', label: 'STORYBOARD' },
+  { id: '04', label: 'PRODUCTION' },
+  { id: '05', label: 'POST' },
+  { id: '06', label: 'COLOR' },
+  { id: '07', label: 'IMPACT' },
+]
+
 export const services: ServiceItem[] = [
   {
     id: '01',
@@ -100,6 +110,9 @@ export const projects: ProjectItem[] = [
     title: 'حملة الوالدية الفاعلة',
     category: 'مجلس شؤون الأسرة · حملة توعوية',
     year: '2026',
+    client: 'FAMILY AFFAIRS COUNCIL',
+    role: 'CREATIVE DIRECTION · PRODUCTION',
+    format: 'CAMPAIGN FILM · 16:9',
     palette: 'amber',
   },
   {
@@ -107,6 +120,9 @@ export const projects: ProjectItem[] = [
     title: 'الفيديو الختامي',
     category: 'كأس السعودية · فيلم فعالية',
     year: '2026',
+    client: 'SAUDI CUP',
+    role: 'PRODUCTION · POST-PRODUCTION',
+    format: 'EVENT FILM · 4K',
     palette: 'violet',
   },
   {
@@ -114,6 +130,9 @@ export const projects: ProjectItem[] = [
     title: 'اللي حصل في ليب',
     category: 'ليب · تغطية إبداعية',
     year: '2025',
+    client: 'LEAP',
+    role: 'CINEMATOGRAPHY · EDITING',
+    format: 'SOCIAL CAMPAIGN · 9:16',
     palette: 'cyan',
   },
   {
@@ -121,6 +140,9 @@ export const projects: ProjectItem[] = [
     title: 'حملة تعزيز الهوية',
     category: 'الصندوق الصناعي · حملة مؤسسية',
     year: '2025',
+    client: 'SIDF',
+    role: 'CREATIVE DIRECTION · MOTION',
+    format: 'BRAND FILM · 16:9',
     palette: 'crimson',
   },
   {
@@ -128,6 +150,9 @@ export const projects: ProjectItem[] = [
     title: 'تعزيز الهوية — الفصل الثاني',
     category: 'الصندوق الصناعي · فيلم علامة',
     year: '2025',
+    client: 'SIDF',
+    role: 'PRODUCTION · COLOR GRADING',
+    format: 'BRAND FILM · 4K',
     palette: 'silver',
   },
 ]
@@ -137,6 +162,11 @@ export const clientsContent = {
   title: 'ثقة من مجالات متعددة.',
   description:
     'نعمل مع الجهات التي ترى في الإنتاج شريكًا في النجاح، لا مجرد خطوة تنفيذية.',
+}
+
+export const clientTestimonial = {
+  quote: 'مساحة مخصصة لشهادة عميل معتمدة تصف أثر الشراكة وجودة التجربة من الفكرة حتى التسليم.',
+  attribution: 'CLIENT TESTIMONIAL · PENDING APPROVAL',
 }
 
 export const clients: ClientItem[] = Array.from({ length: 12 }, (_, index) => ({

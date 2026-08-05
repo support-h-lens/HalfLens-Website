@@ -1,11 +1,11 @@
 import { CinematicMediaStage } from './components/CinematicMediaStage'
 import { Navigation } from './components/Navigation'
+import { PortfolioRise } from './components/PortfolioRise'
 import { Clients } from './sections/Clients'
 import { Contact } from './sections/Contact'
 import { Footer } from './sections/Footer'
 import { Hero } from './sections/Hero'
 import { OurStory } from './sections/OurStory'
-import { Portfolio } from './sections/Portfolio'
 import { Services } from './sections/Services'
 
 function App() {
@@ -29,7 +29,7 @@ function App() {
           </div>
         </div>
 
-        <Portfolio />
+        <PortfolioRise />
         <Clients />
         <Contact />
       </main>

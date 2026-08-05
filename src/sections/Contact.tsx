@@ -21,6 +21,10 @@ export function Contact() {
   return (
     <section id="contact" className="contact" aria-labelledby="contact-title">
       <div className="contact__glow" aria-hidden="true" />
+      <div className="contact__frame-label" aria-hidden="true">
+        <span>FINAL FRAME</span>
+        <span>READY TO COLLABORATE</span>
+      </div>
       <div className="layout-container contact__layout">
         <div className="contact__intro">
           <p className="eyebrow" dir="ltr">

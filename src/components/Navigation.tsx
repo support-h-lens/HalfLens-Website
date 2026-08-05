@@ -102,7 +102,7 @@ export function Navigation() {
               href={`#${item.id}`}
               aria-current={activeSection === item.id ? 'location' : undefined}
             >
-              {item.label}
+              <span>{item.label}</span>
             </a>
           ))}
         </nav>

@@ -24,7 +24,15 @@ export function OurStory() {
     let countTween: gsap.core.Tween | undefined
     let countTrigger: ScrollTrigger | undefined
     let hasCounted = false
+
     const context = gsap.context(() => {
+      const select = gsap.utils.selector(section)
+      const statementEyebrow = select('.story__statement .eyebrow')
+      const statementTitle = select('.story__title-mask h2')
+      const statementLead = select('.story__lead')
+      const statDetails = select('.story__stat-label, .story__stat-supporting')
+      const highlightLines = select('.story__highlight-line')
+
       media = gsap.matchMedia()
       media.add(
         {
@@ -39,13 +47,25 @@ export function OurStory() {
           if (reduceMotion) {
             hasCounted = true
             statNumber.textContent = String(finalStatValue)
-            gsap.set(targets, {
-              opacity: 1,
-              visibility: 'visible',
-              x: 0,
-              y: 0,
-              filter: 'none',
-            })
+            gsap.set(
+              [
+                ...targets,
+                ...statementEyebrow,
+                ...statementTitle,
+                ...statementLead,
+                ...statDetails,
+                ...highlightLines,
+              ],
+              {
+                opacity: 1,
+                visibility: 'visible',
+                x: 0,
+                y: 0,
+                yPercent: 0,
+                scaleX: 1,
+                filter: 'none',
+              },
+            )
             return
           }
 
@@ -106,6 +126,18 @@ export function OurStory() {
                 { autoAlpha: 1, x: 0, y: 0, duration: 0.1 },
                 0,
               )
+              .fromTo(
+                statementTitle,
+                { autoAlpha: 0, yPercent: 34 },
+                { autoAlpha: 1, yPercent: 0, duration: 0.08 },
+                0.02,
+              )
+              .fromTo(
+                statementLead,
+                { autoAlpha: 0, x: 12 },
+                { autoAlpha: 1, x: 0, duration: 0.07 },
+                0.04,
+              )
               .to(statement, { autoAlpha: 1, duration: 0.07 }, 0.1)
               .to(statement, { autoAlpha: 0, y: -8, duration: 0.07 }, 0.17)
               .fromTo(
@@ -121,6 +153,12 @@ export function OurStory() {
                 { autoAlpha: 0, x: 24, y: 14 },
                 { autoAlpha: 1, x: 0, y: 0, duration: 0.1 },
                 0.46,
+              )
+              .fromTo(
+                highlightLines,
+                { scaleX: 0 },
+                { scaleX: 1, duration: 0.09, stagger: 0.012 },
+                0.48,
               )
               .to(highlights, { autoAlpha: 1, duration: 0.06 }, 0.56)
               .to(highlights, { autoAlpha: 0, y: -8, duration: 0.06 }, 0.62)
@@ -144,47 +182,54 @@ export function OurStory() {
             timeline
               .fromTo(
                 statement,
-                { autoAlpha: 0, x: 80, filter: 'blur(5px)' },
-                {
-                  autoAlpha: 1,
-                  x: 0,
-                  filter: 'blur(0px)',
-                  duration: 0.18,
-                },
+                { autoAlpha: 0, x: 68, filter: 'blur(3px)' },
+                { autoAlpha: 1, x: 0, filter: 'blur(0px)', duration: 0.18 },
                 0,
               )
               .fromTo(
+                statementEyebrow,
+                { autoAlpha: 0, x: 18 },
+                { autoAlpha: 1, x: 0, duration: 0.1 },
+                0.01,
+              )
+              .fromTo(
+                statementTitle,
+                { autoAlpha: 0, yPercent: 58 },
+                { autoAlpha: 1, yPercent: 0, duration: 0.15 },
+                0.025,
+              )
+              .fromTo(
+                statementLead,
+                { autoAlpha: 0, x: 24 },
+                { autoAlpha: 1, x: 0, duration: 0.12 },
+                0.07,
+              )
+              .fromTo(
                 stat,
-                { autoAlpha: 0, x: -80, filter: 'blur(5px)' },
-                {
-                  autoAlpha: 1,
-                  x: 0,
-                  filter: 'blur(0px)',
-                  duration: 0.18,
-                },
-                0.16,
+                { autoAlpha: 0, x: -64, filter: 'blur(3px)' },
+                { autoAlpha: 1, x: 0, filter: 'blur(0px)', duration: 0.18 },
+                0.14,
+              )
+              .fromTo(
+                statDetails,
+                { autoAlpha: 0, x: -18 },
+                { autoAlpha: 1, x: 0, duration: 0.13, stagger: 0.025 },
+                0.18,
               )
               .fromTo(
                 highlights,
-                { autoAlpha: 0, x: 64, filter: 'blur(4px)' },
-                {
-                  autoAlpha: 1,
-                  x: 0,
-                  filter: 'blur(0px)',
-                  duration: 0.16,
-                },
+                { autoAlpha: 0, x: 46, filter: 'blur(2px)' },
+                { autoAlpha: 1, x: 0, filter: 'blur(0px)', duration: 0.16 },
                 0.48,
               )
-              .to(
-                [statement, stat],
-                { autoAlpha: 0, filter: 'blur(2px)', duration: 0.12 },
-                0.8,
+              .fromTo(
+                highlightLines,
+                { scaleX: 0 },
+                { scaleX: 1, duration: 0.13, stagger: 0.018 },
+                0.49,
               )
-              .to(
-                highlights,
-                { autoAlpha: 0, filter: 'blur(2px)', duration: 0.1 },
-                0.88,
-              )
+              .to([statement, stat], { autoAlpha: 0, filter: 'blur(2px)', duration: 0.12 }, 0.8)
+              .to(highlights, { autoAlpha: 0, filter: 'blur(2px)', duration: 0.1 }, 0.88)
           }
         },
       )
@@ -213,7 +258,9 @@ export function OurStory() {
           <p className="eyebrow" dir="ltr">
             {storyContent.eyebrow}
           </p>
-          <h2 id="story-title">{storyContent.title}</h2>
+          <div className="story__title-mask motion-title-mask">
+            <h2 id="story-title">{storyContent.title}</h2>
+          </div>
           <p className="story__lead">{storyContent.lead}</p>
         </div>
 
@@ -226,13 +273,14 @@ export function OurStory() {
               {storyContent.statAccessibleLabel}
             </span>
           </span>
-          <span>{storyContent.statLabel}</span>
-          <p>{storyContent.supporting}</p>
+          <span className="story__stat-label">{storyContent.statLabel}</span>
+          <p className="story__stat-supporting">{storyContent.supporting}</p>
         </div>
 
         <ul ref={highlightsRef} className="story__highlights side-copy side-copy--start">
           {storyContent.highlights.map((highlight, index) => (
             <li key={highlight}>
+              <span className="story__highlight-line" aria-hidden="true" />
               <span dir="ltr">0{index + 1}</span>
               <p>{highlight}</p>
             </li>

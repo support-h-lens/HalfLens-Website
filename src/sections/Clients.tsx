@@ -1,5 +1,5 @@
 import { SectionHeading } from '../components/SectionHeading'
-import { clients, clientsContent } from '../data/siteContent'
+import { clientTestimonial, clients, clientsContent } from '../data/siteContent'
 
 export function Clients() {
   return (
@@ -34,6 +34,12 @@ export function Clients() {
       <p className="clients__note layout-container">
         ستُستبدل هذه العناصر بشعارات العملاء المعتمدة عند توفير ملفاتها.
       </p>
+
+      <aside className="layout-container clients__testimonial" aria-label="شهادة عميل">
+        <span className="clients__testimonial-mark" aria-hidden="true">“</span>
+        <blockquote>{clientTestimonial.quote}</blockquote>
+        <p dir="ltr">{clientTestimonial.attribution}</p>
+      </aside>
     </section>
   )
 }

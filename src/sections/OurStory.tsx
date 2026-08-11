@@ -182,8 +182,8 @@ export function OurStory() {
             timeline
               .fromTo(
                 statement,
-                { autoAlpha: 0, x: 68, filter: 'blur(3px)' },
-                { autoAlpha: 1, x: 0, filter: 'blur(0px)', duration: 0.18 },
+                { autoAlpha: 0, x: 68 },
+                { autoAlpha: 1, x: 0, duration: 0.18 },
                 0,
               )
               .fromTo(
@@ -206,8 +206,8 @@ export function OurStory() {
               )
               .fromTo(
                 stat,
-                { autoAlpha: 0, x: -64, filter: 'blur(3px)' },
-                { autoAlpha: 1, x: 0, filter: 'blur(0px)', duration: 0.18 },
+                { autoAlpha: 0, x: -64 },
+                { autoAlpha: 1, x: 0, duration: 0.18 },
                 0.14,
               )
               .fromTo(
@@ -218,8 +218,8 @@ export function OurStory() {
               )
               .fromTo(
                 highlights,
-                { autoAlpha: 0, x: 46, filter: 'blur(2px)' },
-                { autoAlpha: 1, x: 0, filter: 'blur(0px)', duration: 0.16 },
+                { autoAlpha: 0, x: 46 },
+                { autoAlpha: 1, x: 0, duration: 0.16 },
                 0.48,
               )
               .fromTo(
@@ -228,8 +228,8 @@ export function OurStory() {
                 { scaleX: 1, duration: 0.13, stagger: 0.018 },
                 0.49,
               )
-              .to([statement, stat], { autoAlpha: 0, filter: 'blur(2px)', duration: 0.12 }, 0.8)
-              .to(highlights, { autoAlpha: 0, filter: 'blur(2px)', duration: 0.1 }, 0.88)
+              .to([statement, stat], { autoAlpha: 0, duration: 0.12 }, 0.8)
+              .to(highlights, { autoAlpha: 0, duration: 0.1 }, 0.88)
           }
         },
       )

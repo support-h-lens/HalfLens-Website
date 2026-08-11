@@ -1,8 +1,9 @@
-import { useLayoutEffect, useRef } from 'react'
+import { useLayoutEffect, useRef, type CSSProperties } from 'react'
 import { ArrowIcon } from '../components/ArrowIcon'
 import { SectionHeading } from '../components/SectionHeading'
+import { YouTubeHoverMedia } from '../components/YouTubeHoverMedia'
 import { portfolioContent, projects } from '../data/siteContent'
-import { gsap, refreshScrollTriggerWhenReady } from '../lib/gsap'
+import { gsap, refreshScrollTriggerWhenReady, ScrollTrigger } from '../lib/gsap'
 
 export function Portfolio() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -26,6 +27,7 @@ export function Portfolio() {
         },
         ({ conditions }) => {
           const { desktop, mobile, reduceMotion } = conditions ?? {}
+          const revealCleanups: Array<() => void> = []
 
           projectElements.forEach((project) => {
             const visual = project.querySelector<HTMLElement>('.project__visual')
@@ -40,29 +42,81 @@ export function Portfolio() {
 
             if (!desktop && !mobile) return
 
-            gsap
-              .timeline({
-                defaults: { ease: 'none' },
-                scrollTrigger: {
-                  trigger: project,
-                  start: mobile ? 'top 90%' : 'top 88%',
-                  end: mobile ? 'top 48%' : 'top 35%',
-                  scrub: mobile ? 0.55 : 0.8,
-                  invalidateOnRefresh: true,
-                },
-              })
-              .fromTo(
-                visual,
-                {
-                  clipPath: mobile
-                    ? 'inset(3% 0% 3% 0% round 16px)'
-                    : 'inset(6% 2.5% 6% 2.5% round 24px)',
-                },
-                { clipPath: 'inset(0% 0% 0% 0% round 0px)', duration: 1 },
-                0,
-              )
-              .fromTo(surface, { scale: mobile ? 1.025 : 1.055 }, { scale: 1, duration: 1 }, 0)
+            let revealTimeline: gsap.core.Timeline | undefined
+
+            const clearRevealStyles = () => {
+              visual.style.removeProperty('clip-path')
+              visual.style.willChange = 'auto'
+              surface.style.removeProperty('transform')
+              surface.style.willChange = 'auto'
+            }
+
+            const destroyReveal = () => {
+              revealTimeline?.scrollTrigger?.kill()
+              revealTimeline?.kill()
+              revealTimeline = undefined
+              clearRevealStyles()
+            }
+
+            const createReveal = () => {
+              if (revealTimeline) return
+
+              visual.style.willChange = 'clip-path'
+              surface.style.willChange = 'transform'
+
+              revealTimeline = gsap
+                .timeline({
+                  defaults: { ease: 'none' },
+                  scrollTrigger: {
+                    trigger: project,
+                    start: mobile ? 'top 90%' : 'top 88%',
+                    end: mobile ? 'top 48%' : 'top 35%',
+                    scrub: mobile ? 0.55 : 0.8,
+                    invalidateOnRefresh: true,
+                  },
+                })
+                .fromTo(
+                  visual,
+                  {
+                    clipPath: mobile
+                      ? 'inset(3% 0% 3% 0% round 16px)'
+                      : 'inset(6% 2.5% 6% 2.5% round 24px)',
+                  },
+                  { clipPath: 'inset(0% 0% 0% 0% round 0px)', duration: 1 },
+                  0,
+                )
+                .fromTo(
+                  surface,
+                  { scale: mobile ? 1.025 : 1.055 },
+                  { scale: 1, duration: 1 },
+                  0,
+                )
+            }
+
+            clearRevealStyles()
+
+            const lifecycleTrigger = ScrollTrigger.create({
+              trigger: project,
+              start: 'top 105%',
+              end: 'bottom -5%',
+              invalidateOnRefresh: true,
+              onEnter: createReveal,
+              onEnterBack: createReveal,
+              onLeave: destroyReveal,
+              onLeaveBack: destroyReveal,
+              onRefresh: ({ isActive }) => {
+                if (isActive) createReveal()
+                else destroyReveal()
+              },
+            })
+
+            revealCleanups.push(() => {
+              lifecycleTrigger.kill()
+              destroyReveal()
+            })
           })
+
+          return () => revealCleanups.forEach((cleanup) => cleanup())
         },
       )
     }, section)
@@ -90,77 +144,104 @@ export function Portfolio() {
           description={portfolioContent.description}
           theme="light"
         />
-        <p className="portfolio__counter" dir="ltr">
-          PROJECTS / {String(projects.length).padStart(2, '0')}
+        <p className="portfolio__counter">
+          المشاريع / {String(projects.length).padStart(2, '0')}
         </p>
       </div>
 
       <div className="portfolio__projects">
-        {projects.map((project, index) => (
-          <article
-            ref={(element) => {
-              projectRefs.current[index] = element
-            }}
-            className="project"
-            key={project.id}
-          >
-            <a href="#contact" aria-label={`${project.title} — ${portfolioContent.eyebrow}`}>
-              <div
-                className="project__visual"
-                aria-label={`${project.title} — PROJECT IMAGE PLACEHOLDER`}
-                role="img"
-              >
-                <div className={`project__media-surface project__media-surface--${project.palette}`}>
-                  <span className="project__grain" aria-hidden="true" />
-                  <span className="project__shape project__shape--one" aria-hidden="true" />
-                  <span className="project__shape project__shape--two" aria-hidden="true" />
-                  <span className="project__frame project__frame--top" aria-hidden="true">
-                    FRAME / {project.id}
-                  </span>
-                  <span className="project__frame project__frame--bottom" aria-hidden="true">
-                    MASTER · 4K
-                  </span>
-                  <span className="project__placeholder" dir="ltr">
-                    PROJECT MEDIA · {project.id}
-                  </span>
+        {projects.map((project, index) => {
+          const projectLabel = project.youtube
+            ? `${project.title} — مشاهدة الفيلم على YouTube`
+            : `${project.title} — ${portfolioContent.eyebrow}`
+
+          return (
+            <article
+              ref={(element) => {
+                projectRefs.current[index] = element
+              }}
+              className="project"
+              key={project.id}
+            >
+              <div className="project__layout">
+                <div
+                  className="project__visual"
+                  style={
+                    {
+                      '--project-media-aspect': project.youtube?.aspectRatio ?? 16 / 9,
+                    } as CSSProperties
+                  }
+                >
+                  <div
+                    className={`project__media-surface project__media-surface--${project.palette}`}
+                  >
+                    {project.youtube ? (
+                      <YouTubeHoverMedia
+                        posterUrl={project.youtube.poster}
+                        title={project.title}
+                        videoId={project.youtube.id}
+                      />
+                    ) : (
+                      <>
+                        <span className="project__grain" aria-hidden="true" />
+                        <span className="project__shape project__shape--one" aria-hidden="true" />
+                        <span className="project__shape project__shape--two" aria-hidden="true" />
+                        <span className="project__frame project__frame--top" aria-hidden="true">
+                          FRAME / {project.id}
+                        </span>
+                        <span className="project__frame project__frame--bottom" aria-hidden="true">
+                          MASTER · 4K
+                        </span>
+                        <span className="project__placeholder" dir="ltr">
+                          PROJECT MEDIA · {project.id}
+                        </span>
+                      </>
+                    )}
+                  </div>
                 </div>
+
+                <a
+                  className="project__details"
+                  href={project.youtube?.url ?? '#contact'}
+                  aria-label={projectLabel}
+                  target={project.youtube ? '_blank' : undefined}
+                  rel={project.youtube ? 'noreferrer' : undefined}
+                >
+                  <div className="project__title-group">
+                    <p>المشروع {project.id} / {project.category}</p>
+                    <h3>{project.title}</h3>
+                  </div>
+
+                  <dl className="project__metadata">
+                    <div>
+                      <dt>العميل</dt>
+                      <dd>{project.client}</dd>
+                    </div>
+                    <div>
+                      <dt>دور هاف لينس</dt>
+                      <dd>{project.role}</dd>
+                    </div>
+                    <div>
+                      <dt>الصيغة</dt>
+                      <dd>{project.format}</dd>
+                    </div>
+                    <div>
+                      <dt>السنة</dt>
+                      <dd>{project.year}</dd>
+                    </div>
+                  </dl>
+
+                  <div className="project__meta">
+                    <span>{project.youtube ? 'شاهد الفيلم' : 'شاهد المشروع'}</span>
+                    <span className="project__arrow">
+                      <ArrowIcon />
+                    </span>
+                  </div>
+                </a>
               </div>
-
-              <div className="project__details">
-                <div className="project__title-group">
-                  <p dir="ltr">PROJECT {project.id} / {project.category}</p>
-                  <h3>{project.title}</h3>
-                </div>
-
-                <dl className="project__metadata" dir="ltr">
-                  <div>
-                    <dt>CLIENT</dt>
-                    <dd>{project.client}</dd>
-                  </div>
-                  <div>
-                    <dt>H-LENS ROLE</dt>
-                    <dd>{project.role}</dd>
-                  </div>
-                  <div>
-                    <dt>FORMAT</dt>
-                    <dd>{project.format}</dd>
-                  </div>
-                  <div>
-                    <dt>YEAR</dt>
-                    <dd>{project.year}</dd>
-                  </div>
-                </dl>
-
-                <div className="project__meta">
-                  <span dir="ltr">VIEW PROJECT</span>
-                  <span className="project__arrow">
-                    <ArrowIcon />
-                  </span>
-                </div>
-              </div>
-            </a>
-          </article>
-        ))}
+            </article>
+          )
+        })}
       </div>
     </section>
   )

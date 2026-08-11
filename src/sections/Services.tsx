@@ -33,7 +33,7 @@ export function Services() {
           reduceMotion: '(prefers-reduced-motion: reduce)',
         },
         ({ conditions }) => {
-          const { desktop, mobile, reduceMotion } = conditions ?? {}
+          const { mobile, reduceMotion } = conditions ?? {}
           const childTargets = select(
             '.services__intro .eyebrow, .services__intro-title h2, .services__intro-copy, .services__intro-line, .service-item__line, .service-item__number, .service-item__meta, .service-item__title-mask h3, .service-item__copy, .services__production-track',
           )
@@ -52,24 +52,22 @@ export function Services() {
           }
 
           const scrub = mobile ? 0.7 : 0.85
-          const filterFrom = desktop ? 'blur(3px)' : 'none'
-          const filterTo = desktop ? 'blur(1.5px)' : 'none'
 
           gsap
             .timeline({
               defaults: { ease: 'none' },
               scrollTrigger: {
                 trigger: intro,
-                start: mobile ? 'top 92%' : 'top 82%',
-                end: mobile ? 'top 52%' : 'top 34%',
+                start: mobile ? 'top 84%' : 'top 78%',
+                end: mobile ? 'top 28%' : 'top 22%',
                 scrub,
                 invalidateOnRefresh: true,
               },
             })
             .fromTo(
               intro,
-              { autoAlpha: 0, x: mobile ? -24 : -56, y: mobile ? 12 : 0, filter: filterFrom },
-              { autoAlpha: 1, x: 0, y: 0, filter: 'blur(0px)', duration: 0.28 },
+              { autoAlpha: 0, x: mobile ? -24 : -56, y: mobile ? 12 : 0 },
+              { autoAlpha: 1, x: 0, y: 0, duration: 0.28 },
               0,
             )
             .fromTo(
@@ -96,8 +94,9 @@ export function Services() {
               { autoAlpha: 1, x: 0, duration: 0.16 },
               0.11,
             )
-            .to(intro, { autoAlpha: 1, duration: 0.4 }, 0.28)
-            .to(intro, { autoAlpha: 0, y: mobile ? -8 : 0, filter: filterTo, duration: 0.32 }, 0.68)
+            .to(intro, { autoAlpha: 1, duration: 0.28 }, 0.28)
+            .to(intro, { autoAlpha: 0, y: mobile ? -8 : 0, duration: 0.22 }, 0.56)
+            .to(intro, { autoAlpha: 0, duration: 0.22 }, 0.78)
 
           const desktopMovements = [64, 52, 60, 48, 56]
 
@@ -118,8 +117,8 @@ export function Services() {
                 defaults: { ease: 'none' },
                 scrollTrigger: {
                   trigger: item,
-                  start: mobile ? 'top 92%' : 'top 88%',
-                  end: mobile ? 'top 52%' : 'top 30%',
+                  start: mobile ? 'top 72%' : 'top 74%',
+                  end: mobile ? 'top 24%' : 'top 18%',
                   scrub,
                   invalidateOnRefresh: true,
                 },
@@ -130,9 +129,8 @@ export function Services() {
                   autoAlpha: 0,
                   x: direction * movement,
                   y: mobile ? 10 : 0,
-                  filter: filterFrom,
                 },
-                { autoAlpha: 1, x: 0, y: 0, filter: 'blur(0px)', duration: 0.26 },
+                { autoAlpha: 1, x: 0, y: 0, duration: 0.26 },
                 0,
               )
               .fromTo(line, { scaleX: 0 }, { scaleX: 1, duration: 0.18 }, 0.025)
@@ -154,18 +152,18 @@ export function Services() {
                 { autoAlpha: 1, x: 0, duration: 0.15 },
                 0.12,
               )
-              .to(item, { autoAlpha: 1, duration: 0.42 }, 0.26)
+              .to(item, { autoAlpha: 1, duration: 0.24 }, 0.26)
               .to(
                 item,
                 {
                   autoAlpha: 0,
                   x: direction * -10,
                   y: mobile ? -7 : 0,
-                  filter: filterTo,
-                  duration: 0.32,
+                  duration: 0.16,
                 },
-                0.68,
+                0.5,
               )
+              .to(item, { autoAlpha: 0, duration: 0.34 }, 0.66)
           })
 
           gsap.fromTo(

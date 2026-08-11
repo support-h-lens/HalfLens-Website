@@ -1,18 +1,15 @@
 import { useLayoutEffect, useRef } from 'react'
 import { gsap, refreshScrollTriggerWhenReady } from '../lib/gsap'
 import { Portfolio } from '../sections/Portfolio'
-import { CinematicMediaStage } from './CinematicMediaStage'
 
 export function PortfolioRise() {
   const sectionRef = useRef<HTMLDivElement>(null)
-  const cinematicRef = useRef<HTMLDivElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
 
   useLayoutEffect(() => {
     const section = sectionRef.current
-    const cinematic = cinematicRef.current
     const panel = panelRef.current
-    if (!section || !cinematic || !panel) return undefined
+    if (!section || !panel) return undefined
 
     let media: gsap.MatchMedia | undefined
     const context = gsap.context(() => {
@@ -33,7 +30,6 @@ export function PortfolioRise() {
               borderTopLeftRadius: 0,
               borderTopRightRadius: 0,
             })
-            gsap.set(cinematic, { clearProps: 'all' })
             return
           }
 
@@ -55,22 +51,12 @@ export function PortfolioRise() {
               defaults: { ease: 'none' },
               scrollTrigger: {
                 trigger: section,
-                start: 'top top',
-                end: mobile ? '+=75%' : '+=100%',
+                start: 'top bottom',
+                end: mobile ? 'top 22%' : 'top top',
                 scrub: mobile ? 0.65 : 0.9,
                 invalidateOnRefresh: true,
               },
             })
-            .to(
-              cinematic,
-              {
-                scale: mobile ? 0.98 : 0.94,
-                autoAlpha: mobile ? 0.5 : 0.35,
-                filter: mobile ? 'none' : 'blur(2px)',
-                duration: 1,
-              },
-              0,
-            )
             .to(
               panel,
               {
@@ -97,14 +83,6 @@ export function PortfolioRise() {
 
   return (
     <div ref={sectionRef} className="portfolio-rise">
-      <div ref={cinematicRef} className="portfolio-rise__cinematic" aria-hidden="true">
-        <CinematicMediaStage className="portfolio-rise__media" />
-        <div className="portfolio-rise__final-frame">
-          <span>FINAL FRAME</span>
-          <span>OUTPUT / 03</span>
-        </div>
-      </div>
-
       <div ref={panelRef} className="portfolio-rise__panel">
         <Portfolio />
       </div>

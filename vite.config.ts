@@ -1,8 +1,30 @@
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 
+function immutableMediaCache(): Plugin {
+  return {
+    name: 'h-lens-immutable-media-cache',
+    configureServer(server) {
+      server.middlewares.use((request, response, next) => {
+        if ((request as { url?: string }).url?.startsWith('/media/')) {
+          response.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
+        }
+        next()
+      })
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use((request, response, next) => {
+        if ((request as { url?: string }).url?.startsWith('/media/')) {
+          response.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
+        }
+        next()
+      })
+    },
+  }
+}
+
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), immutableMediaCache()],
   server: {
     host: true,
     port: 5173,

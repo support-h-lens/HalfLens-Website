@@ -29,6 +29,12 @@ export interface ProjectItem {
   year: string
   palette: 'amber' | 'violet' | 'cyan' | 'crimson' | 'silver'
   image?: string
+  youtube?: {
+    id: string
+    url: string
+    poster: string
+    aspectRatio: number
+  }
 }
 
 export interface ClientItem {

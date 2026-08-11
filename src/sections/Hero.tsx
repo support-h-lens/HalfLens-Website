@@ -29,9 +29,6 @@ export function Hero() {
         </div>
 
         <div className="hero__copy">
-          <p className="eyebrow" dir="ltr">
-            {heroContent.eyebrow}
-          </p>
           <h1 id="hero-title">
             <span>{heroContent.titleLineOne}</span>
             <span>{heroContent.titleLineTwo}</span>

@@ -6,7 +6,10 @@ function immutableMediaCache(): Plugin {
     name: 'h-lens-immutable-media-cache',
     configureServer(server) {
       server.middlewares.use((request, response, next) => {
-        if ((request as { url?: string }).url?.startsWith('/media/')) {
+        if (
+          (request as { url?: string }).url?.startsWith('/media/')
+          || (request as { url?: string }).url?.startsWith('/experimental/cinematic-sequence/')
+        ) {
           response.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
         }
         next()
@@ -14,7 +17,10 @@ function immutableMediaCache(): Plugin {
     },
     configurePreviewServer(server) {
       server.middlewares.use((request, response, next) => {
-        if ((request as { url?: string }).url?.startsWith('/media/')) {
+        if (
+          (request as { url?: string }).url?.startsWith('/media/')
+          || (request as { url?: string }).url?.startsWith('/experimental/cinematic-sequence/')
+        ) {
           response.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
         }
         next()

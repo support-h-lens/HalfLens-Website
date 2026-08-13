@@ -7,9 +7,13 @@ import { Hero } from '../sections/Hero'
 import { OurStory } from '../sections/OurStory'
 import { Services } from '../sections/Services'
 import { CinematicMediaStage } from './CinematicMediaStage'
+import { CinematicSequenceStage } from './CinematicSequenceStage'
 
-export function CinematicStory() {
-  const storyRef = useRef<HTMLDivElement>(null)
+interface CinematicVideoStageProps {
+  storyRef: React.RefObject<HTMLDivElement>
+}
+
+function CinematicVideoStage({ storyRef }: CinematicVideoStageProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [readyVideo, setReadyVideo] = useState<{
     currentSrc: string
@@ -91,20 +95,40 @@ export function CinematicStory() {
       media?.revert()
       context.revert()
     }
-  }, [readyVideo, videoSource.src])
+  }, [readyVideo, storyRef, videoSource.src])
 
   return (
-    <div ref={storyRef} className="cinematic-story">
+    <CinematicMediaStage
+      ref={videoRef}
+      className="cinematic-media-stage--fullscreen"
+      videoSrc={videoSource.src}
+      preload={videoSource.preload}
+      posterSrc={cinematicFilm.poster}
+      initialTime={cinematicFilm.initialTime}
+      onVideoReady={setReadyVideo}
+    />
+  )
+}
+
+function getExperimentalRenderer() {
+  if (typeof window === 'undefined') return 'video'
+  return new URLSearchParams(window.location.search).get('renderer') === 'sequence'
+    ? 'sequence'
+    : 'video'
+}
+
+export function CinematicStory() {
+  const storyRef = useRef<HTMLDivElement>(null)
+  const renderer = getExperimentalRenderer()
+
+  return (
+    <div ref={storyRef} className="cinematic-story" data-cinematic-renderer={renderer}>
       <div className="cinematic-story__sticky" aria-hidden="true">
-        <CinematicMediaStage
-          ref={videoRef}
-          className="cinematic-media-stage--fullscreen"
-          videoSrc={videoSource.src}
-          preload={videoSource.preload}
-          posterSrc={cinematicFilm.poster}
-          initialTime={cinematicFilm.initialTime}
-          onVideoReady={setReadyVideo}
-        />
+        {renderer === 'sequence' ? (
+          <CinematicSequenceStage storyRef={storyRef} />
+        ) : (
+          <CinematicVideoStage storyRef={storyRef} />
+        )}
       </div>
 
       <div className="cinematic-story__chapters">

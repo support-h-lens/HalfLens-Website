@@ -62,14 +62,15 @@ export function Clients() {
 
     const context = gsap.context(() => {
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
-      if (reduceMotion) {
-        statNumber.textContent = String(finalClientStatValue)
-        return
-      }
+      const logoImages = section.querySelectorAll<HTMLImageElement>('.client-logo')
 
       const setTickerActive = (active: boolean) => {
-        section.classList.toggle('clients--ticker-active', active)
+        if (active) {
+          logoImages.forEach((image) => {
+            image.loading = 'eager'
+          })
+        }
+        section.classList.toggle('clients--ticker-active', active && !reduceMotion)
       }
 
       tickerTrigger = ScrollTrigger.create({
@@ -80,6 +81,11 @@ export function Clients() {
         onToggle: ({ isActive }) => setTickerActive(isActive),
         onRefresh: ({ isActive }) => setTickerActive(isActive),
       })
+
+      if (reduceMotion) {
+        statNumber.textContent = String(finalClientStatValue)
+        return
+      }
 
       const counter = { value: 1 }
       statNumber.textContent = '1'

@@ -257,7 +257,7 @@ export const clients: ClientItem[] = [
     id: '09',
     name: 'وزارة العدل',
     abbreviation: 'MINISTRY OF JUSTICE',
-    logo: '/media/clients/ministry-of-justice.svg',
+    logo: '/media/clients/ministry-of-justice.webp',
   },
   {
     id: '10',

@@ -1771,10 +1771,6 @@ ol {
     transform 220ms ease;
 }
 
-.client-logo--09 {
-  width: clamp(210px, 90%, 280px);
-  height: clamp(190px, 16vw, 260px);
-}
 
 .client-placeholder {
   display: flex;
@@ -2834,10 +2830,6 @@ ol {
     height: 76px;
   }
 
-  .client-logo--09 {
-    width: 220px;
-    height: 210px;
-  }
 
   .contact__layout {
     gap: 65px;

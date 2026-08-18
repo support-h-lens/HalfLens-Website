@@ -26,6 +26,11 @@ export function Hero() {
             <span>24 FPS</span>
           </div>
           <div className="hero__capture hero__capture--timecode">00:00:08:12</div>
+
+          <div className="hero__index">
+            <span>HL / 001</span>
+            <span>24.7136° N · 46.6753° E</span>
+          </div>
         </div>
 
         <div className="hero__copy">
@@ -45,15 +50,11 @@ export function Hero() {
           </div>
         </div>
 
-        <div className="hero__index" aria-hidden="true">
-          <span>HL / 001</span>
-          <span>24.7136° N</span>
-          <span>46.6753° E</span>
-        </div>
-
         <a className="scroll-cue" href="#story" aria-label="انتقل إلى قصتنا">
-          <span>مرّر لاكتشاف القصة</span>
-          <ArrowIcon direction="down" />
+          <strong>مرّر لاكتشاف القصة</strong>
+          <span className="scroll-cue__motion" aria-hidden="true">
+            <ArrowIcon direction="down" />
+          </span>
         </a>
       </div>
     </section>

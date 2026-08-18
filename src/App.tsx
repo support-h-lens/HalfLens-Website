@@ -1,4 +1,5 @@
 import { CinematicStory } from './components/CinematicStory'
+import { ControlledScroll } from './components/ControlledScroll'
 import { Navigation } from './components/Navigation'
 import { PortfolioRise } from './components/PortfolioRise'
 import { SectionWindow } from './components/SectionWindow'
@@ -9,6 +10,7 @@ import { Footer } from './sections/Footer'
 function App() {
   return (
     <>
+      <ControlledScroll />
       <a className="skip-link" href="#main-content">
         انتقل إلى المحتوى
       </a>

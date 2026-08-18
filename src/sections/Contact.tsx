@@ -6,6 +6,15 @@ import { contactChannels, contactPaths, projectTypes } from '../data/siteContent
 type ContactPath = keyof typeof contactPaths
 
 const careerCvMaxBytes = 10 * 1024 * 1024
+const careerPortfolioMaxBytes = 10 * 1024 * 1024
+const careerSubmissionEndpoint =
+  import.meta.env.VITE_CAREERS_API_URL ||
+  'https://svqnzpjotlxncrosuatk.supabase.co/functions/v1/submit-job-application'
+
+type CareerSubmissionStatus = {
+  kind: 'success' | 'error'
+  message: string
+} | null
 
 interface ProjectTypeSelectProps {
   invalid: boolean
@@ -174,6 +183,11 @@ export function Contact() {
   const [projectTypeInvalid, setProjectTypeInvalid] = useState(false)
   const [careerCvName, setCareerCvName] = useState('')
   const [careerCvError, setCareerCvError] = useState('')
+  const [careerPortfolioName, setCareerPortfolioName] = useState('')
+  const [careerPortfolioError, setCareerPortfolioError] = useState('')
+  const [careerSubmitting, setCareerSubmitting] = useState(false)
+  const [careerSubmissionStatus, setCareerSubmissionStatus] =
+    useState<CareerSubmissionStatus>(null)
   const activeContent = contactPaths[activePath]
   const visibleChannels = contactChannels.filter((channel) => {
     if (activePath === 'career') {
@@ -224,31 +238,83 @@ export function Contact() {
     const company = String(data.get('company') ?? '')
     const email = String(data.get('email') ?? '')
     const type = String(data.get('projectType') ?? '')
-    const message = String(data.get('message') ?? '')
     const subject = encodeURIComponent(`طلب مشروع جديد — ${company || name}`)
     const body = encodeURIComponent(
-      `الاسم: ${name}\nالجهة: ${company}\nالبريد: ${email}\nنوع المشروع: ${type}\n\n${message}`,
+      `الاسم: ${name}\nالجهة: ${company}\nالبريد: ${email}\nنوع المشروع: ${type}`,
     )
     window.location.href = `mailto:bd@h-lens.co?subject=${subject}&body=${body}`
   }
 
-  const handleCareerSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleCareerSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
-    const data = new FormData(event.currentTarget)
+    const form = event.currentTarget
+    const data = new FormData(form)
     const name = String(data.get('careerName') ?? '')
     const email = String(data.get('careerEmail') ?? '')
     const phone = String(data.get('careerPhone') ?? '')
     const specialty = String(data.get('specialty') ?? '')
     const portfolio = String(data.get('portfolio') ?? '')
-    const message = String(data.get('careerMessage') ?? '')
     const cv = data.get('careerCv')
-    const cvName = cv instanceof File && cv.name ? cv.name : 'غير محدد'
-    const subject = encodeURIComponent(`طلب انضمام جديد — ${specialty || name}`)
-    const body = encodeURIComponent(
-      `الاسم: ${name}\nالبريد: ${email}\nالهاتف: ${phone}\nالتخصص: ${specialty}\nرابط الأعمال أو LinkedIn: ${portfolio}\nملف السيرة الذاتية المختار: ${cvName}\nيرجى إرفاق ملف السيرة الذاتية قبل إرسال الرسالة.\n\n${message}`,
-    )
-    window.location.href = `mailto:hr@h-lens.co?subject=${subject}&body=${body}`
+    const portfolioFile = data.get('careerPortfolio')
+    const portfolioInput = form.elements.namedItem('portfolio') as HTMLInputElement | null
+
+    portfolioInput?.setCustomValidity('')
+    if (!portfolio.trim() && !(portfolioFile instanceof File && portfolioFile.size > 0)) {
+      const validationMessage = 'أضف رابط أعمالك أو ارفع ملف الأعمال.'
+      portfolioInput?.setCustomValidity(validationMessage)
+      portfolioInput?.reportValidity()
+      setCareerPortfolioError(validationMessage)
+      return
+    }
+
+    if (!(cv instanceof File) || cv.size === 0) return
+
+    setCareerSubmitting(true)
+    setCareerSubmissionStatus(null)
+
+    const payload = new FormData()
+    payload.append('full_name', name)
+    payload.append('email', email)
+    payload.append('phone', phone)
+    payload.append('specialty', specialty)
+    payload.append('portfolio_url', portfolio)
+    payload.append('cv', cv)
+    payload.append('website', String(data.get('website') ?? ''))
+    if (portfolioFile instanceof File && portfolioFile.size > 0) {
+      payload.append('portfolio_file', portfolioFile)
+    }
+
+    try {
+      const response = await fetch(careerSubmissionEndpoint, {
+        method: 'POST',
+        body: payload,
+      })
+      const result = await response.json().catch(() => ({})) as { error?: string }
+
+      if (!response.ok) {
+        throw new Error(result.error || 'تعذر إرسال الطلب الآن، يرجى المحاولة مرة أخرى.')
+      }
+
+      form.reset()
+      setCareerCvName('')
+      setCareerCvError('')
+      setCareerPortfolioName('')
+      setCareerPortfolioError('')
+      setCareerSubmissionStatus({
+        kind: 'success',
+        message: 'تم استلام طلبك بنجاح. سيتواصل معك فريق الموارد البشرية عند الانتقال للخطوة التالية.',
+      })
+    } catch (error) {
+      setCareerSubmissionStatus({
+        kind: 'error',
+        message: error instanceof Error
+          ? error.message
+          : 'تعذر إرسال الطلب الآن، يرجى المحاولة مرة أخرى.',
+      })
+    } finally {
+      setCareerSubmitting(false)
+    }
   }
 
   const handleCareerCvChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -257,6 +323,7 @@ export function Contact() {
 
     input.setCustomValidity('')
     setCareerCvError('')
+    setCareerSubmissionStatus(null)
 
     if (!file) {
       setCareerCvName('')
@@ -274,6 +341,35 @@ export function Contact() {
     }
 
     setCareerCvName(file.name)
+  }
+
+  const handleCareerPortfolioChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const input = event.currentTarget
+    const file = input.files?.[0]
+    const form = input.form
+    const portfolioInput = form?.elements.namedItem('portfolio') as HTMLInputElement | null
+
+    input.setCustomValidity('')
+    portfolioInput?.setCustomValidity('')
+    setCareerPortfolioError('')
+    setCareerSubmissionStatus(null)
+
+    if (!file) {
+      setCareerPortfolioName('')
+      return
+    }
+
+    if (file.size > careerPortfolioMaxBytes) {
+      const validationMessage = 'يجب ألا يتجاوز حجم ملف الأعمال 10 ميجابايت.'
+      input.value = ''
+      input.setCustomValidity(validationMessage)
+      setCareerPortfolioName('')
+      setCareerPortfolioError(validationMessage)
+      input.reportValidity()
+      return
+    }
+
+    setCareerPortfolioName(file.name)
   }
 
   return (
@@ -381,10 +477,6 @@ export function Contact() {
                   value={projectType}
                 />
               </div>
-              <div className="form-field form-field--wide">
-                <label htmlFor="message">حدثنا عن الفكرة</label>
-                <textarea id="message" name="message" rows={4} required />
-              </div>
               <div className="contact-form__footer form-field--wide">
                 <p>سيُفتح تطبيق البريد لإرسال تفاصيل المشروع مباشرة إلى فريقنا.</p>
                 <button className="button button--submit" type="submit">
@@ -402,10 +494,14 @@ export function Contact() {
             aria-labelledby="contact-tab-career"
             hidden={activePath !== 'career'}
           >
-            <form className="contact-form" onSubmit={handleCareerSubmit}>
+            <form className="contact-form" onSubmit={handleCareerSubmit} aria-busy={careerSubmitting}>
+              <div className="career-honeypot" aria-hidden="true">
+                <label htmlFor="career-website">Website</label>
+                <input id="career-website" name="website" type="text" tabIndex={-1} autoComplete="off" />
+              </div>
               <div className="form-field">
                 <label htmlFor="career-name">الاسم</label>
-                <input id="career-name" name="careerName" type="text" autoComplete="name" required />
+                <input id="career-name" name="careerName" type="text" autoComplete="name" minLength={2} maxLength={120} required />
               </div>
               <div className="form-field">
                 <label htmlFor="career-phone">رقم التواصل</label>
@@ -416,6 +512,8 @@ export function Contact() {
                   autoComplete="tel"
                   inputMode="tel"
                   dir="ltr"
+                  minLength={7}
+                  maxLength={30}
                   required
                 />
               </div>
@@ -428,12 +526,13 @@ export function Contact() {
                   autoComplete="email"
                   inputMode="email"
                   dir="ltr"
+                  maxLength={254}
                   required
                 />
               </div>
               <div className="form-field form-field--wide">
                 <label htmlFor="specialty">المسمى الوظيفي أو التخصص</label>
-                <input id="specialty" name="specialty" type="text" required />
+                <input id="specialty" name="specialty" type="text" minLength={2} maxLength={160} required />
               </div>
               <div className="form-field form-field--wide">
                 <label htmlFor="portfolio-link">رابط الأعمال أو LinkedIn</label>
@@ -444,8 +543,52 @@ export function Contact() {
                   inputMode="url"
                   dir="ltr"
                   placeholder="https://"
-                  required
+                  maxLength={1000}
+                  onInput={(event) => {
+                    event.currentTarget.setCustomValidity('')
+                    setCareerPortfolioError('')
+                    setCareerSubmissionStatus(null)
+                  }}
                 />
+              </div>
+              <div className="form-field form-field--wide">
+                <span id="career-portfolio-label" className="form-field__label">
+                  ملف الأعمال (بديل اختياري للرابط)
+                </span>
+                <input
+                  id="career-portfolio"
+                  className="cv-upload__input"
+                  name="careerPortfolio"
+                  type="file"
+                  accept=".pdf,.zip,application/pdf,application/zip,application/x-zip-compressed"
+                  aria-describedby={`career-portfolio-hint${careerPortfolioError ? ' career-portfolio-error' : ''}`}
+                  aria-labelledby="career-portfolio-label career-portfolio-name"
+                  onChange={handleCareerPortfolioChange}
+                />
+                <label
+                  className={`cv-upload${careerPortfolioName ? ' cv-upload--selected' : ''}`}
+                  htmlFor="career-portfolio"
+                >
+                  <span className="cv-upload__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                      <path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 15.5V20h14v-4.5" />
+                    </svg>
+                  </span>
+                  <span className="cv-upload__details">
+                    <strong id="career-portfolio-name" dir="auto">
+                      {careerPortfolioName || 'اختر ملف الأعمال'}
+                    </strong>
+                    <small id="career-portfolio-hint">PDF أو ZIP · بحد أقصى 10 ميجابايت</small>
+                  </span>
+                  <span className="cv-upload__action">
+                    {careerPortfolioName ? 'تغيير الملف' : 'اختيار ملف'}
+                  </span>
+                </label>
+                {careerPortfolioError ? (
+                  <p id="career-portfolio-error" className="cv-upload__error" role="alert">
+                    {careerPortfolioError}
+                  </p>
+                ) : null}
               </div>
               <div className="form-field form-field--wide">
                 <span id="career-cv-label" className="form-field__label">
@@ -487,20 +630,24 @@ export function Contact() {
                   </p>
                 ) : null}
               </div>
-              <div className="form-field form-field--wide">
-                <label htmlFor="career-message">عرّفنا بنفسك</label>
-                <textarea id="career-message" name="careerMessage" rows={4} required />
-              </div>
               <div className="contact-form__footer form-field--wide">
                 <p>
-                  سيُفتح تطبيق البريد لإرسال الطلب. أرفق ملف السيرة الذاتية الذي اخترته قبل
-                  الإرسال.
+                  سيصل طلبك وملفاتك مباشرة وبشكل آمن إلى فريق الموارد البشرية.
                 </p>
-                <button className="button button--submit" type="submit">
-                  <span>أرسل طلب الانضمام</span>
+                <button className="button button--submit" type="submit" disabled={careerSubmitting}>
+                  <span>{careerSubmitting ? 'جارٍ إرسال الطلب…' : 'أرسل طلب الانضمام'}</span>
                   <ArrowIcon />
                 </button>
               </div>
+              {careerSubmissionStatus ? (
+                <p
+                  className={`career-submit-status career-submit-status--${careerSubmissionStatus.kind} form-field--wide`}
+                  role={careerSubmissionStatus.kind === 'error' ? 'alert' : 'status'}
+                  aria-live="polite"
+                >
+                  {careerSubmissionStatus.message}
+                </p>
+              ) : null}
             </form>
           </div>
         </div>

@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import type { FormEvent, KeyboardEvent, RefObject } from 'react'
+import type { ChangeEvent, FormEvent, KeyboardEvent, RefObject } from 'react'
 import { ArrowIcon } from '../components/ArrowIcon'
 import { contactChannels, contactPaths, projectTypes } from '../data/siteContent'
 
 type ContactPath = keyof typeof contactPaths
+
+const careerCvMaxBytes = 10 * 1024 * 1024
 
 interface ProjectTypeSelectProps {
   invalid: boolean
@@ -170,6 +172,8 @@ export function Contact() {
   const [activePath, setActivePath] = useState<ContactPath>('client')
   const [projectType, setProjectType] = useState('')
   const [projectTypeInvalid, setProjectTypeInvalid] = useState(false)
+  const [careerCvName, setCareerCvName] = useState('')
+  const [careerCvError, setCareerCvError] = useState('')
   const activeContent = contactPaths[activePath]
   const visibleChannels = contactChannels.filter((channel) => {
     if (activePath === 'career') {
@@ -238,11 +242,38 @@ export function Contact() {
     const specialty = String(data.get('specialty') ?? '')
     const portfolio = String(data.get('portfolio') ?? '')
     const message = String(data.get('careerMessage') ?? '')
+    const cv = data.get('careerCv')
+    const cvName = cv instanceof File && cv.name ? cv.name : 'غير محدد'
     const subject = encodeURIComponent(`طلب انضمام جديد — ${specialty || name}`)
     const body = encodeURIComponent(
-      `الاسم: ${name}\nالبريد: ${email}\nالهاتف: ${phone}\nالتخصص: ${specialty}\nرابط الأعمال أو LinkedIn: ${portfolio}\n\n${message}`,
+      `الاسم: ${name}\nالبريد: ${email}\nالهاتف: ${phone}\nالتخصص: ${specialty}\nرابط الأعمال أو LinkedIn: ${portfolio}\nملف السيرة الذاتية المختار: ${cvName}\nيرجى إرفاق ملف السيرة الذاتية قبل إرسال الرسالة.\n\n${message}`,
     )
     window.location.href = `mailto:hr@h-lens.co?subject=${subject}&body=${body}`
+  }
+
+  const handleCareerCvChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const input = event.currentTarget
+    const file = input.files?.[0]
+
+    input.setCustomValidity('')
+    setCareerCvError('')
+
+    if (!file) {
+      setCareerCvName('')
+      return
+    }
+
+    if (file.size > careerCvMaxBytes) {
+      const message = 'يجب ألا يتجاوز حجم السيرة الذاتية 10 ميجابايت.'
+      input.value = ''
+      input.setCustomValidity(message)
+      setCareerCvName('')
+      setCareerCvError(message)
+      input.reportValidity()
+      return
+    }
+
+    setCareerCvName(file.name)
   }
 
   return (
@@ -417,11 +448,54 @@ export function Contact() {
                 />
               </div>
               <div className="form-field form-field--wide">
+                <span id="career-cv-label" className="form-field__label">
+                  السيرة الذاتية
+                </span>
+                <input
+                  id="career-cv"
+                  className="cv-upload__input"
+                  name="careerCv"
+                  type="file"
+                  accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  aria-describedby={`career-cv-hint${careerCvError ? ' career-cv-error' : ''}`}
+                  aria-labelledby="career-cv-label career-cv-name"
+                  onChange={handleCareerCvChange}
+                  required
+                />
+                <label
+                  className={`cv-upload${careerCvName ? ' cv-upload--selected' : ''}`}
+                  htmlFor="career-cv"
+                >
+                  <span className="cv-upload__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                      <path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 15.5V20h14v-4.5" />
+                    </svg>
+                  </span>
+                  <span className="cv-upload__details">
+                    <strong id="career-cv-name" dir="auto">
+                      {careerCvName || 'اختر ملف السيرة الذاتية'}
+                    </strong>
+                    <small id="career-cv-hint">PDF أو DOC أو DOCX · بحد أقصى 10 ميجابايت</small>
+                  </span>
+                  <span className="cv-upload__action">
+                    {careerCvName ? 'تغيير الملف' : 'اختيار ملف'}
+                  </span>
+                </label>
+                {careerCvError ? (
+                  <p id="career-cv-error" className="cv-upload__error" role="alert">
+                    {careerCvError}
+                  </p>
+                ) : null}
+              </div>
+              <div className="form-field form-field--wide">
                 <label htmlFor="career-message">عرّفنا بنفسك</label>
                 <textarea id="career-message" name="careerMessage" rows={4} required />
               </div>
               <div className="contact-form__footer form-field--wide">
-                <p>سيُفتح تطبيق البريد لإرسال طلب الانضمام مباشرة إلى فريق الموارد البشرية.</p>
+                <p>
+                  سيُفتح تطبيق البريد لإرسال الطلب. أرفق ملف السيرة الذاتية الذي اخترته قبل
+                  الإرسال.
+                </p>
                 <button className="button button--submit" type="submit">
                   <span>أرسل طلب الانضمام</span>
                   <ArrowIcon />

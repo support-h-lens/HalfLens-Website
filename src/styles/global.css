@@ -913,7 +913,7 @@ ol {
 }
 
 .hero__capture--scene {
-  inset: auto auto 18px 18px;
+  inset: auto auto 18px clamp(190px, 14vw, 280px);
 }
 
 .hero__capture--format span + span,
@@ -2817,6 +2817,39 @@ ol {
   .project__tags span {
     min-height: 34px;
     padding: 6px 13px 7px;
+  }
+
+  .clients__stat {
+    align-items: flex-start;
+    margin-block-start: 38px;
+  }
+
+  .clients__ticker {
+    -webkit-mask-image: linear-gradient(
+      90deg,
+      transparent 0,
+      #000 3%,
+      #000 97%,
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      90deg,
+      transparent 0,
+      #000 3%,
+      #000 97%,
+      transparent 100%
+    );
+  }
+
+  .clients__ticker-item {
+    width: clamp(174px, 57vw, 242px);
+    height: 132px;
+    padding: 22px;
+  }
+
+  .client-logo {
+    width: min(72%, 164px);
+    height: 76px;
   }
 
   .contact__layout {

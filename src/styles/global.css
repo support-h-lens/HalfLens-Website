@@ -1092,8 +1092,7 @@ ol {
   overflow: clip;
 }
 
-.story__statement h2,
-.services__intro h2 {
+.story__statement h2 {
   margin-block: 0;
   padding-block: 0.08em;
   font-size: var(--text-chapter);
@@ -1172,6 +1171,42 @@ ol {
 
 .services__intro {
   inset-block-start: 4%;
+  width: min(34vw, 560px);
+}
+
+.services__intro .eyebrow {
+  color: rgba(184, 90, 73, 0.88);
+  letter-spacing: 0.18em;
+}
+
+.services__section-name-mask {
+  margin-block: clamp(1rem, 1.4vw, 1.4rem) clamp(0.7rem, 1vw, 1rem);
+}
+
+.services__section-name {
+  margin: 0;
+  padding-block: 0.06em 0.12em;
+  color: var(--white);
+  font-size: clamp(4.4rem, 6.4vw, 7.4rem);
+  font-weight: 400;
+  line-height: 1.12;
+  letter-spacing: normal;
+  text-wrap: balance;
+}
+
+.services__intro-title {
+  margin-block: 0 var(--space-copy);
+}
+
+.services__intro-statement {
+  margin: 0;
+  padding-block: 0.06em;
+  color: #d4d6d2;
+  font-size: clamp(2rem, 3vw, 3.4rem);
+  font-weight: 400;
+  line-height: 1.34;
+  letter-spacing: normal;
+  text-wrap: balance;
 }
 
 .services__intro-line,
@@ -3146,9 +3181,17 @@ ol {
     inset-block-start: 14%;
   }
 
-  .story__statement h2,
-  .services__intro h2 {
+  .story__statement h2 {
     font-size: var(--text-chapter);
+  }
+
+  .services__section-name {
+    font-size: clamp(3.8rem, 16vw, 5.6rem);
+  }
+
+  .services__intro-statement {
+    font-size: clamp(1.8rem, 8vw, 2.55rem);
+    line-height: 1.38;
   }
 
   .story__stat {

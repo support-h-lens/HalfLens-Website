@@ -43,7 +43,8 @@ export const storyContent = {
 }
 
 export const servicesContent = {
-  eyebrow: '02 — خدماتنا',
+  eyebrow: '02 / SERVICES',
+  label: 'خدماتنا',
   title: 'كل ما تحتاجه الصورة، تحت سقف واحد.',
   intro:
     'من لحظة كتابة الفكرة حتى آخر معالجة لونية؛ نبني فرقًا مرنة لكل مشروع ونحافظ على رؤية واحدة متماسكة.',

@@ -20,7 +20,8 @@ export function Services() {
     const context = gsap.context(() => {
       const select = gsap.utils.selector(section)
       const introEyebrow = select('.services__intro .eyebrow')
-      const introTitle = select('.services__intro-title h2')
+      const introName = select('.services__section-name')
+      const introTitle = select('.services__intro-statement')
       const introCopy = select('.services__intro-copy')
       const introLine = select('.services__intro-line')
       const productionTrack = select('.services__production-track')
@@ -35,7 +36,7 @@ export function Services() {
         ({ conditions }) => {
           const { mobile, reduceMotion } = conditions ?? {}
           const childTargets = select(
-            '.services__intro .eyebrow, .services__intro-title h2, .services__intro-copy, .services__intro-line, .service-item__line, .service-item__number, .service-item__meta, .service-item__title-mask h3, .service-item__copy, .services__production-track',
+            '.services__intro .eyebrow, .services__section-name, .services__intro-statement, .services__intro-copy, .services__intro-line, .service-item__line, .service-item__number, .service-item__meta, .service-item__title-mask h3, .service-item__copy, .services__production-track',
           )
 
           if (reduceMotion) {
@@ -83,16 +84,22 @@ export function Services() {
               0.04,
             )
             .fromTo(
-              introTitle,
+              introName,
               { autoAlpha: 0, yPercent: 108 },
               { autoAlpha: 1, yPercent: 0, duration: 0.2 },
-              0.075,
+              0.055,
+            )
+            .fromTo(
+              introTitle,
+              { autoAlpha: 0, yPercent: 72 },
+              { autoAlpha: 1, yPercent: 0, duration: 0.17 },
+              0.18,
             )
             .fromTo(
               introCopy,
               { autoAlpha: 0, y: 10 },
               { autoAlpha: 1, y: 0, duration: 0.13 },
-              0.2,
+              0.27,
             )
             .to(introLine, { scaleX: 0, duration: 0.16 }, 0.72)
             .to(
@@ -108,6 +115,18 @@ export function Services() {
             const fromRight = item.classList.contains('service-item--start')
             const direction = fromRight ? 1 : -1
             const movement = mobile ? 26 : desktopMovements[index] ?? 54
+            const triggerStart = index === 0
+              ? 'top 58%'
+              : mobile
+                ? 'top 72%'
+                : 'top 74%'
+            const triggerEnd = index === 0
+              ? mobile
+                ? 'top 8%'
+                : 'top 6%'
+              : mobile
+                ? 'top 14%'
+                : 'top 12%'
             const line = item.querySelector<HTMLElement>('.service-item__line')
             const number = item.querySelector<HTMLElement>('.service-item__number')
             const meta = item.querySelector<HTMLElement>('.service-item__meta')
@@ -121,8 +140,8 @@ export function Services() {
                 defaults: { ease: 'none' },
                 scrollTrigger: {
                   trigger: item,
-                  start: mobile ? 'top 72%' : 'top 74%',
-                  end: mobile ? 'top 14%' : 'top 12%',
+                  start: triggerStart,
+                  end: triggerEnd,
                   scrub,
                   invalidateOnRefresh: true,
                 },
@@ -211,8 +230,13 @@ export function Services() {
           <p className="eyebrow" dir="ltr">
             {servicesContent.eyebrow}
           </p>
+          <div className="services__section-name-mask motion-title-mask">
+            <h2 id="services-title" className="services__section-name">
+              {servicesContent.label}
+            </h2>
+          </div>
           <div className="services__intro-title motion-title-mask">
-            <h2 id="services-title">{servicesContent.title}</h2>
+            <p className="services__intro-statement">{servicesContent.title}</p>
           </div>
           <p className="services__intro-copy">{servicesContent.intro}</p>
         </header>

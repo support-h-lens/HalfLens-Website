@@ -61,19 +61,19 @@ export function SectionWindow({ children, className = '', theme }: SectionWindow
                 defaults: { ease: 'none' },
                 scrollTrigger: {
                   trigger: root,
-                  start: mobile ? 'top 96%' : 'top 98%',
-                  end: mobile ? 'top 72%' : 'top 64%',
-                  scrub: mobile ? 0.28 : 0.42,
+                  start: mobile ? 'top 101%' : 'top 104%',
+                  end: mobile ? 'top 54%' : 'top 28%',
+                  scrub: mobile ? 0.38 : 0.68,
                   invalidateOnRefresh: true,
                 },
               })
               .fromTo(
                 panel,
                 {
-                  autoAlpha: mobile ? 0.95 : 0.9,
-                  borderRadius: mobile ? 20 : 34,
-                  scale: mobile ? 0.992 : 0.982,
-                  y: mobile ? 24 : 52,
+                  autoAlpha: mobile ? 0.97 : 0.92,
+                  borderRadius: mobile ? 28 : 44,
+                  scale: mobile ? 0.976 : 0.965,
+                  y: mobile ? 42 : 88,
                 },
                 {
                   autoAlpha: 1,

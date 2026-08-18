@@ -465,10 +465,11 @@ export const socialLinks = [
 ]
 
 export const footerContent = {
-  tagline: 'من الفكرة إلى الصورة التي تبقى.',
+  tagline: 'إنتاج مرئي من الرياض، للفكرة التي تستحق أن تُرى.',
   signal: 'NEXT FRAME / 06',
-  statement: 'لنصنع المشهد التالي.',
-  contactLabel: 'ابدأ مشروعًا جديدًا',
-  email: 'bd@h-lens.co',
+  statement: 'صورة لها معنى. أثر يبقى.',
+  servicesLabel: 'مجالاتنا',
+  valuesLabel: 'قيمنا',
+  values: ['الفكرة', 'الدقة', 'الإيقاع', 'الأثر'],
   location: 'الرياض، المملكة العربية السعودية',
 }

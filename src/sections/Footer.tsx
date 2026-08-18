@@ -1,5 +1,5 @@
 import { BrandLogo } from '../components/BrandLogo'
-import { footerContent, navigation, socialLinks } from '../data/siteContent'
+import { footerContent, navigation, services, socialLinks } from '../data/siteContent'
 
 export function Footer() {
   return (
@@ -9,19 +9,34 @@ export function Footer() {
           <BrandLogo />
         </a>
 
-        <div className="footer__callout">
+        <div className="footer__directory">
+          <div className="footer__column">
+            <h2>{footerContent.servicesLabel}</h2>
+            <ul>
+              {services.map((service) => (
+                <li key={service.id}>{service.title}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="footer__column">
+            <h2>{footerContent.valuesLabel}</h2>
+            <ul>
+              {footerContent.values.map((value) => (
+                <li key={value}>{value}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        <div className="footer__manifesto">
           <div className="footer__signal" dir="ltr">
             <i aria-hidden="true" />
             <span>{footerContent.signal}</span>
           </div>
           <p className="footer__statement">{footerContent.statement}</p>
-          <a className="footer__email" href={`mailto:${footerContent.email}`}>
-            <span>{footerContent.contactLabel}</span>
-            <strong dir="ltr">{footerContent.email}</strong>
-          </a>
+          <p className="footer__tagline">{footerContent.tagline}</p>
         </div>
-
-        <p className="footer__tagline">{footerContent.tagline}</p>
       </div>
 
       <div className="layout-container footer__links">

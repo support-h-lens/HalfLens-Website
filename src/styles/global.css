@@ -933,7 +933,7 @@ ol {
   position: absolute;
   inset-block-start: 50%;
   inset-inline-start: 0;
-  inset-inline-start: clamp(22px, 2.4vw, 40px);
+  inset-inline-start: clamp(6px, 1vw, 16px);
   width: min(33vw, 520px);
   z-index: 3;
   transform: translateY(-43%);
@@ -2839,7 +2839,7 @@ ol {
 
   .hero__copy {
     inset-block: auto 9svh;
-    inset-inline-start: 0;
+    inset-inline-start: -3vw;
     width: min(66vw, 540px);
     transform: none;
   }
@@ -3058,6 +3058,7 @@ ol {
 
   .hero__copy {
     inset-block: auto 8svh;
+    inset-inline-start: 0;
     width: 100%;
     padding-block-start: 80px;
     background: linear-gradient(

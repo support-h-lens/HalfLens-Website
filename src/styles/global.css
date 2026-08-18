@@ -1378,7 +1378,8 @@ ol {
   position: relative;
   z-index: 4;
   isolation: isolate;
-  margin-block-start: -100svh;
+  /* Keep the editorial rise, but let the final service finish before it enters. */
+  margin-block-start: -20svh;
   background: transparent;
 }
 
@@ -3111,6 +3112,10 @@ ol {
 
   .cinematic-media-stage__meta {
     inset-inline: 12%;
+  }
+
+  .portfolio-rise {
+    margin-block-start: -15svh;
   }
 
   .portfolio-rise__panel {

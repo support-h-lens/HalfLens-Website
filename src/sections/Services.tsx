@@ -51,54 +51,56 @@ export function Services() {
             return
           }
 
-          const scrub = mobile ? 0.7 : 0.85
+          const scrub = mobile ? 0.55 : 0.65
 
           gsap
             .timeline({
               defaults: { ease: 'none' },
               scrollTrigger: {
                 trigger: intro,
-                start: mobile ? 'top 84%' : 'top 78%',
-                end: mobile ? 'top 28%' : 'top 22%',
+                start: mobile ? 'top 65%' : 'top 50%',
+                end: mobile ? 'top 18%' : 'top 12%',
                 scrub,
                 invalidateOnRefresh: true,
               },
             })
             .fromTo(
               intro,
-              { autoAlpha: 0, x: mobile ? -24 : -56, y: mobile ? 12 : 0 },
-              { autoAlpha: 1, x: 0, y: 0, duration: 0.28 },
+              { autoAlpha: 0, x: mobile ? -22 : -42, y: mobile ? 10 : 0 },
+              { autoAlpha: 1, x: 0, y: 0, duration: 0.12 },
               0,
             )
             .fromTo(
               introLine,
               { scaleX: 0 },
-              { scaleX: 1, duration: 0.18 },
-              0.02,
+              { scaleX: 1, duration: 0.16 },
+              0.01,
             )
             .fromTo(
               introEyebrow,
-              { autoAlpha: 0, x: -14 },
-              { autoAlpha: 1, x: 0, duration: 0.12 },
+                { autoAlpha: 0, x: -14 },
+              { autoAlpha: 1, x: 0, duration: 0.1 },
               0.03,
             )
             .fromTo(
               introTitle,
-              { autoAlpha: 0, yPercent: 48 },
-              { autoAlpha: 1, yPercent: 0, duration: 0.2 },
-              0.05,
+              { autoAlpha: 0, yPercent: 90 },
+              { autoAlpha: 1, yPercent: 0, duration: 0.21 },
+              0.055,
             )
             .fromTo(
               introCopy,
-              { autoAlpha: 0, x: -18 },
-              { autoAlpha: 1, x: 0, duration: 0.16 },
-              0.11,
+              { autoAlpha: 0, y: 12 },
+              { autoAlpha: 1, y: 0, duration: 0.14 },
+              0.15,
             )
-            .to(intro, { autoAlpha: 1, duration: 0.28 }, 0.28)
-            .to(intro, { autoAlpha: 0, y: mobile ? -8 : 0, duration: 0.22 }, 0.56)
-            .to(intro, { autoAlpha: 0, duration: 0.22 }, 0.78)
+            .to(introCopy, { autoAlpha: 0, y: -8, duration: 0.1 }, 0.62)
+            .to(introTitle, { autoAlpha: 0, y: -8, duration: 0.14 }, 0.68)
+            .to(introEyebrow, { autoAlpha: 0, x: 8, duration: 0.1 }, 0.71)
+            .to(introLine, { scaleX: 0, duration: 0.13 }, 0.72)
+            .to(intro, { autoAlpha: 0, x: mobile ? 8 : 14, duration: 0.16 }, 0.77)
 
-          const desktopMovements = [64, 52, 60, 48, 56]
+          const desktopMovements = [44, 38, 42, 34, 40]
 
           items.forEach((item, index) => {
             const fromRight = item.classList.contains('service-item--start')
@@ -117,8 +119,8 @@ export function Services() {
                 defaults: { ease: 'none' },
                 scrollTrigger: {
                   trigger: item,
-                  start: mobile ? 'top 72%' : 'top 74%',
-                  end: mobile ? 'top 24%' : 'top 18%',
+                  start: mobile ? 'top 72%' : 'top 70%',
+                  end: mobile ? 'top 10%' : 'top 8%',
                   scrub,
                   invalidateOnRefresh: true,
                 },
@@ -128,42 +130,45 @@ export function Services() {
                 {
                   autoAlpha: 0,
                   x: direction * movement,
-                  y: mobile ? 10 : 0,
+                  y: mobile ? 9 : 0,
                 },
-                { autoAlpha: 1, x: 0, y: 0, duration: 0.26 },
+                { autoAlpha: 1, x: 0, y: 0, duration: 0.12 },
                 0,
               )
-              .fromTo(line, { scaleX: 0 }, { scaleX: 1, duration: 0.18 }, 0.025)
+              .fromTo(line, { scaleX: 0 }, { scaleX: 1, duration: 0.17 }, 0.01)
               .fromTo(
                 [number, meta],
                 { autoAlpha: 0, x: direction * 12 },
-                { autoAlpha: 1, x: 0, duration: 0.12, stagger: 0.02 },
-                0.055,
+                { autoAlpha: 1, x: 0, duration: 0.11, stagger: 0.018 },
+                0.04,
               )
               .fromTo(
                 title,
-                { autoAlpha: 0, yPercent: 46 },
-                { autoAlpha: 1, yPercent: 0, duration: 0.19 },
+                { autoAlpha: 0, yPercent: 96 },
+                { autoAlpha: 1, yPercent: 0, duration: 0.21 },
                 0.075,
               )
               .fromTo(
                 copy,
-                { autoAlpha: 0, x: direction * 16 },
-                { autoAlpha: 1, x: 0, duration: 0.15 },
-                0.12,
+                { autoAlpha: 0, y: 12 },
+                { autoAlpha: 1, y: 0, duration: 0.14 },
+                0.17,
               )
-              .to(item, { autoAlpha: 1, duration: 0.24 }, 0.26)
+              .to(copy, { autoAlpha: 0, y: -8, duration: 0.12 }, 0.5)
+              .to([number, meta], { autoAlpha: 0, x: direction * -8, duration: 0.12 }, 0.54)
+              .to(title, { autoAlpha: 0, y: -8, duration: 0.14 }, 0.55)
+              .to(line, { scaleX: 0, duration: 0.15 }, 0.58)
               .to(
                 item,
                 {
                   autoAlpha: 0,
-                  x: direction * -10,
-                  y: mobile ? -7 : 0,
+                  x: direction * -14,
+                  y: mobile ? -6 : 0,
                   duration: 0.16,
                 },
-                0.5,
+                0.6,
               )
-              .to(item, { autoAlpha: 0, duration: 0.34 }, 0.66)
+              .to(item, { autoAlpha: 0, duration: 0.24 }, 0.76)
           })
 
           gsap.fromTo(

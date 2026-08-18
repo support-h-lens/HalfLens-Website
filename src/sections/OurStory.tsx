@@ -30,8 +30,11 @@ export function OurStory() {
       const statementEyebrow = select('.story__statement .eyebrow')
       const statementTitle = select('.story__title-mask h2')
       const statementLead = select('.story__lead')
+      const statValue = select('.story__stat-value')
       const statDetails = select('.story__stat-label, .story__stat-supporting')
       const highlightLines = select('.story__highlight-line')
+      const highlightNumbers = select('.story__highlights li > span:not(.story__highlight-line)')
+      const highlightCopy = select('.story__highlights li p')
 
       media = gsap.matchMedia()
       media.add(
@@ -53,8 +56,11 @@ export function OurStory() {
                 ...statementEyebrow,
                 ...statementTitle,
                 ...statementLead,
+                ...statValue,
                 ...statDetails,
                 ...highlightLines,
+                ...highlightNumbers,
+                ...highlightCopy,
               ],
               {
                 opacity: 1,
@@ -114,7 +120,7 @@ export function OurStory() {
                 trigger: section,
                 start: 'top 82%',
                 end: 'bottom 20%',
-                scrub: 0.7,
+                scrub: 0.55,
                 invalidateOnRefresh: true,
               },
             })
@@ -122,47 +128,75 @@ export function OurStory() {
             timeline
               .fromTo(
                 statement,
-                { autoAlpha: 0, x: 28, y: 14 },
-                { autoAlpha: 1, x: 0, y: 0, duration: 0.1 },
+                { autoAlpha: 0, x: 24, y: 12 },
+                { autoAlpha: 1, x: 0, y: 0, duration: 0.075 },
                 0,
               )
               .fromTo(
+                statementEyebrow,
+                { autoAlpha: 0, x: 10 },
+                { autoAlpha: 1, x: 0, duration: 0.055 },
+                0.01,
+              )
+              .fromTo(
                 statementTitle,
-                { autoAlpha: 0, yPercent: 34 },
-                { autoAlpha: 1, yPercent: 0, duration: 0.08 },
-                0.02,
+                { autoAlpha: 0, yPercent: 72 },
+                { autoAlpha: 1, yPercent: 0, duration: 0.095 },
+                0.025,
               )
               .fromTo(
                 statementLead,
-                { autoAlpha: 0, x: 12 },
-                { autoAlpha: 1, x: 0, duration: 0.07 },
-                0.04,
+                { autoAlpha: 0, y: 10 },
+                { autoAlpha: 1, y: 0, duration: 0.07 },
+                0.065,
               )
-              .to(statement, { autoAlpha: 1, duration: 0.07 }, 0.1)
-              .to(statement, { autoAlpha: 0, y: -8, duration: 0.07 }, 0.17)
+              .to(statementLead, { autoAlpha: 0, y: -6, duration: 0.045 }, 0.17)
+              .to(statementTitle, { autoAlpha: 0, y: -8, duration: 0.06 }, 0.19)
+              .to(statementEyebrow, { autoAlpha: 0, duration: 0.04 }, 0.205)
+              .to(statement, { autoAlpha: 0, x: -8, duration: 0.055 }, 0.215)
               .fromTo(
                 stat,
-                { autoAlpha: 0, x: -24, y: 14 },
-                { autoAlpha: 1, x: 0, y: 0, duration: 0.1 },
-                0.24,
+                { autoAlpha: 0, x: -22, y: 12 },
+                { autoAlpha: 1, x: 0, y: 0, duration: 0.075 },
+                0.255,
               )
-              .to(stat, { autoAlpha: 1, duration: 0.06 }, 0.34)
-              .to(stat, { autoAlpha: 0, y: -8, duration: 0.06 }, 0.4)
+              .fromTo(
+                statValue,
+                { autoAlpha: 0, x: -12 },
+                { autoAlpha: 1, x: 0, duration: 0.075 },
+                0.265,
+              )
+              .fromTo(
+                statDetails,
+                { autoAlpha: 0, y: 8 },
+                { autoAlpha: 1, y: 0, duration: 0.065, stagger: 0.012 },
+                0.3,
+              )
+              .to(statDetails, { autoAlpha: 0, y: -6, duration: 0.045 }, 0.405)
+              .to(statValue, { autoAlpha: 0, x: 8, duration: 0.055 }, 0.425)
+              .to(stat, { autoAlpha: 0, duration: 0.045 }, 0.445)
               .fromTo(
                 highlights,
-                { autoAlpha: 0, x: 24, y: 14 },
-                { autoAlpha: 1, x: 0, y: 0, duration: 0.1 },
-                0.46,
+                { autoAlpha: 0, x: 22, y: 12 },
+                { autoAlpha: 1, x: 0, y: 0, duration: 0.075 },
+                0.48,
               )
               .fromTo(
                 highlightLines,
                 { scaleX: 0 },
-                { scaleX: 1, duration: 0.09, stagger: 0.012 },
-                0.48,
+                { scaleX: 1, duration: 0.07, stagger: 0.012 },
+                0.49,
               )
-              .to(highlights, { autoAlpha: 1, duration: 0.06 }, 0.56)
-              .to(highlights, { autoAlpha: 0, y: -8, duration: 0.06 }, 0.62)
-              .to(timelineSpacer, { progress: 1, duration: 0.32 }, 0.68)
+              .fromTo(
+                [...highlightNumbers, ...highlightCopy],
+                { autoAlpha: 0, y: 8 },
+                { autoAlpha: 1, y: 0, duration: 0.07, stagger: 0.01 },
+                0.515,
+              )
+              .to([...highlightNumbers, ...highlightCopy], { autoAlpha: 0, y: -6, duration: 0.055 }, 0.66)
+              .to(highlightLines, { scaleX: 0, duration: 0.06, stagger: 0.008 }, 0.68)
+              .to(highlights, { autoAlpha: 0, x: -8, duration: 0.055 }, 0.7)
+              .to(timelineSpacer, { progress: 1, duration: 0.25 }, 0.75)
 
             return
           }
@@ -174,7 +208,7 @@ export function OurStory() {
                 trigger: section,
                 start: 'top 72%',
                 end: 'bottom 18%',
-                scrub: 0.85,
+                scrub: 0.65,
                 invalidateOnRefresh: true,
               },
             })
@@ -182,54 +216,71 @@ export function OurStory() {
             timeline
               .fromTo(
                 statement,
-                { autoAlpha: 0, x: 68 },
-                { autoAlpha: 1, x: 0, duration: 0.18 },
+                { autoAlpha: 0, x: 46 },
+                { autoAlpha: 1, x: 0, duration: 0.12 },
                 0,
               )
               .fromTo(
                 statementEyebrow,
                 { autoAlpha: 0, x: 18 },
-                { autoAlpha: 1, x: 0, duration: 0.1 },
+                { autoAlpha: 1, x: 0, duration: 0.08 },
                 0.01,
               )
               .fromTo(
                 statementTitle,
-                { autoAlpha: 0, yPercent: 58 },
-                { autoAlpha: 1, yPercent: 0, duration: 0.15 },
-                0.025,
+                { autoAlpha: 0, yPercent: 88 },
+                { autoAlpha: 1, yPercent: 0, duration: 0.17 },
+                0.035,
               )
               .fromTo(
                 statementLead,
-                { autoAlpha: 0, x: 24 },
-                { autoAlpha: 1, x: 0, duration: 0.12 },
-                0.07,
+                { autoAlpha: 0, y: 14 },
+                { autoAlpha: 1, y: 0, duration: 0.11 },
+                0.105,
               )
               .fromTo(
                 stat,
-                { autoAlpha: 0, x: -64 },
-                { autoAlpha: 1, x: 0, duration: 0.18 },
-                0.14,
+                { autoAlpha: 0, x: -44 },
+                { autoAlpha: 1, x: 0, duration: 0.12 },
+                0.11,
+              )
+              .fromTo(
+                statValue,
+                { autoAlpha: 0, x: -18 },
+                { autoAlpha: 1, x: 0, duration: 0.13 },
+                0.13,
               )
               .fromTo(
                 statDetails,
-                { autoAlpha: 0, x: -18 },
-                { autoAlpha: 1, x: 0, duration: 0.13, stagger: 0.025 },
-                0.18,
+                { autoAlpha: 0, y: 10 },
+                { autoAlpha: 1, y: 0, duration: 0.1, stagger: 0.018 },
+                0.19,
               )
               .fromTo(
                 highlights,
-                { autoAlpha: 0, x: 46 },
-                { autoAlpha: 1, x: 0, duration: 0.16 },
-                0.48,
+                { autoAlpha: 0, x: 38 },
+                { autoAlpha: 1, x: 0, duration: 0.11 },
+                0.42,
               )
               .fromTo(
                 highlightLines,
                 { scaleX: 0 },
-                { scaleX: 1, duration: 0.13, stagger: 0.018 },
-                0.49,
+                { scaleX: 1, duration: 0.11, stagger: 0.014 },
+                0.43,
               )
-              .to([statement, stat], { autoAlpha: 0, duration: 0.12 }, 0.8)
-              .to(highlights, { autoAlpha: 0, duration: 0.1 }, 0.88)
+              .fromTo(
+                [...highlightNumbers, ...highlightCopy],
+                { autoAlpha: 0, y: 10 },
+                { autoAlpha: 1, y: 0, duration: 0.1, stagger: 0.012 },
+                0.46,
+              )
+              .to([statementLead, ...statDetails], { autoAlpha: 0, y: -8, duration: 0.07 }, 0.75)
+              .to(statementTitle, { autoAlpha: 0, y: -10, duration: 0.1 }, 0.78)
+              .to([statementEyebrow, ...statValue], { autoAlpha: 0, duration: 0.08 }, 0.8)
+              .to([statement, stat], { autoAlpha: 0, duration: 0.08 }, 0.82)
+              .to([...highlightNumbers, ...highlightCopy], { autoAlpha: 0, y: -8, duration: 0.07 }, 0.86)
+              .to(highlightLines, { scaleX: 0, duration: 0.08, stagger: 0.01 }, 0.88)
+              .to(highlights, { autoAlpha: 0, x: -10, duration: 0.08 }, 0.9)
           }
         },
       )

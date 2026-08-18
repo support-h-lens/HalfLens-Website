@@ -976,6 +976,7 @@ ol {
   align-items: center;
   gap: 28px;
   margin-block-start: clamp(2rem, 2.8vw, 3rem);
+  transform: translateX(calc(clamp(28px, 2.5vw, 52px) * -1));
 }
 
 .button--primary {
@@ -1202,23 +1203,23 @@ ol {
 }
 
 .service-item:nth-child(1) {
-  inset-block-start: 12%;
+  inset-block-start: 13%;
 }
 
 .service-item:nth-child(2) {
-  inset-block-start: 20.5%;
+  inset-block-start: 23.5%;
 }
 
 .service-item:nth-child(3) {
-  inset-block-start: 29%;
+  inset-block-start: 34%;
 }
 
 .service-item:nth-child(4) {
-  inset-block-start: 37.5%;
+  inset-block-start: 44.5%;
 }
 
 .service-item:nth-child(5) {
-  inset-block-start: 46%;
+  inset-block-start: 55%;
 }
 
 .service-item__header {
@@ -1235,6 +1236,22 @@ ol {
 
 .service-item__number {
   color: var(--accent-bright);
+}
+
+.service-item--start .service-item__line {
+  background: linear-gradient(90deg, rgba(238, 236, 229, 0.1), rgba(184, 90, 73, 0.56));
+  transform-origin: right center;
+}
+
+.service-item--end .service-item__line {
+  background: linear-gradient(90deg, rgba(184, 90, 73, 0.56), rgba(238, 236, 229, 0.1));
+  transform-origin: left center;
+}
+
+@media (max-width: 960px) {
+  .hero__actions {
+    transform: none;
+  }
 }
 
 .service-item h3 {
@@ -3097,6 +3114,7 @@ ol {
 
   .hero__actions {
     margin-block-start: 26px;
+    transform: none;
   }
 
   .hero__index {
@@ -3162,19 +3180,19 @@ ol {
   }
 
   .service-item:nth-child(2) {
-    inset-block-start: 21%;
+    inset-block-start: 23.5%;
   }
 
   .service-item:nth-child(3) {
-    inset-block-start: 29%;
+    inset-block-start: 34%;
   }
 
   .service-item:nth-child(4) {
-    inset-block-start: 37%;
+    inset-block-start: 44.5%;
   }
 
   .service-item:nth-child(5) {
-    inset-block-start: 45%;
+    inset-block-start: 55%;
   }
 
   .service-item h3 {

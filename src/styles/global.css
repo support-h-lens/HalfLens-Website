@@ -2845,7 +2845,12 @@ ol {
   }
 
   .hero h1 {
-    font-size: var(--text-hero);
+    font-size: clamp(3.3rem, 5.7vw, 3.55rem);
+    transform: translateX(clamp(12px, 1.7vw, 18px));
+  }
+
+  .hero__description {
+    width: min(100%, 24ch);
   }
 
   .scroll-cue {
@@ -3073,6 +3078,7 @@ ol {
   .hero h1 {
     margin-block: 18px 24px;
     font-size: var(--text-hero);
+    transform: none;
   }
 
   .hero h1 span:last-child {

@@ -463,3 +463,12 @@ export const socialLinks = [
   { label: 'TikTok', href: 'https://www.tiktok.com/@halflens_sa' },
   { label: 'X', href: 'https://twitter.com/HalfLens_SA' },
 ]
+
+export const footerContent = {
+  tagline: 'من الفكرة إلى الصورة التي تبقى.',
+  signal: 'NEXT FRAME / 06',
+  statement: 'لنصنع المشهد التالي.',
+  contactLabel: 'ابدأ مشروعًا جديدًا',
+  email: 'bd@h-lens.co',
+  location: 'الرياض، المملكة العربية السعودية',
+}

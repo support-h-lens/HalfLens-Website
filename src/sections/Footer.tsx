@@ -1,5 +1,5 @@
 import { BrandLogo } from '../components/BrandLogo'
-import { navigation, socialLinks } from '../data/siteContent'
+import { footerContent, navigation, socialLinks } from '../data/siteContent'
 
 export function Footer() {
   return (
@@ -8,7 +8,20 @@ export function Footer() {
         <a href="#hero" className="footer__brand" aria-label="العودة إلى الرئيسية">
           <BrandLogo />
         </a>
-        <p>من الفكرة إلى الصورة التي تبقى.</p>
+
+        <div className="footer__callout">
+          <div className="footer__signal" dir="ltr">
+            <i aria-hidden="true" />
+            <span>{footerContent.signal}</span>
+          </div>
+          <p className="footer__statement">{footerContent.statement}</p>
+          <a className="footer__email" href={`mailto:${footerContent.email}`}>
+            <span>{footerContent.contactLabel}</span>
+            <strong dir="ltr">{footerContent.email}</strong>
+          </a>
+        </div>
+
+        <p className="footer__tagline">{footerContent.tagline}</p>
       </div>
 
       <div className="layout-container footer__links">
@@ -30,7 +43,7 @@ export function Footer() {
 
       <div className="layout-container footer__legal">
         <span>© {new Date().getFullYear()} HALF LENS PRODUCTION</span>
-        <span>الرياض، المملكة العربية السعودية</span>
+        <span>{footerContent.location}</span>
       </div>
     </footer>
   )

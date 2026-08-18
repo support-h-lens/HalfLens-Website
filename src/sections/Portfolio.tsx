@@ -34,7 +34,7 @@ export function Portfolio() {
             const surface = project.querySelector<HTMLElement>('.project__media-surface')
             const details = project.querySelector<HTMLElement>('.project__details')
             const detailItems = project.querySelectorAll<HTMLElement>(
-              '.project__title-group, .project__metadata > div, .project__meta',
+              '.project__status, .project__title-group, .project__metadata > div, .project__meta',
             )
             if (!visual || !surface || !details) return
 
@@ -244,6 +244,14 @@ export function Portfolio() {
                   target={project.youtube ? '_blank' : undefined}
                   rel={project.youtube ? 'noreferrer' : undefined}
                 >
+                  <div className="project__status" aria-hidden="true" dir="ltr">
+                    <span>
+                      <i />
+                      H-LENS SELECTED
+                    </span>
+                    <span>{project.id} / {String(projects.length).padStart(2, '0')}</span>
+                  </div>
+
                   <div className="project__title-group">
                     <p className="project__kicker">المشروع {project.id} / {project.category}</p>
                     <h3>{project.title}</h3>
@@ -257,10 +265,6 @@ export function Portfolio() {
                     <div>
                       <dt>دور هاف لينس</dt>
                       <dd>{project.role}</dd>
-                    </div>
-                    <div>
-                      <dt>الصيغة</dt>
-                      <dd>{project.format}</dd>
                     </div>
                     <div>
                       <dt>السنة</dt>

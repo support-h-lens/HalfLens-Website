@@ -669,7 +669,7 @@ ol {
 
 .cinematic-media-stage--fullscreen .cinematic-media-stage__video {
   border-radius: 0;
-  object-fit: contain;
+  object-fit: cover;
 }
 
 .cinematic-media-stage--fullscreen .cinematic-media-stage__camera {
@@ -933,7 +933,7 @@ ol {
   position: absolute;
   inset-block-start: 50%;
   inset-inline-start: 0;
-  inset-inline-start: clamp(6px, 1vw, 16px);
+  inset-inline-start: calc((var(--container) - 100vw) / 2 + 20px);
   width: min(33vw, 520px);
   z-index: 3;
   transform: translateY(-43%);
@@ -944,7 +944,7 @@ ol {
   row-gap: clamp(0.02em, 0.18vw, 0.08em);
   margin-block: var(--space-heading) clamp(1.75rem, 2.3vw, 2.75rem);
   padding-block: 0.12em;
-  font-size: var(--text-hero);
+  font-size: min(var(--text-hero), 7.4rem);
   font-weight: 400;
   line-height: 1.12;
   letter-spacing: normal;
@@ -2825,6 +2825,10 @@ ol {
 
   .cinematic-media-stage {
     width: clamp(300px, 48vw, 480px);
+  }
+
+  .cinematic-media-stage--fullscreen .cinematic-media-stage__video {
+    object-fit: contain;
   }
 
   .cinematic-story__sticky {

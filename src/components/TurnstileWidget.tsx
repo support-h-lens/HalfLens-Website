@@ -12,7 +12,7 @@ interface TurnstileRenderOptions {
   size: 'normal' | 'compact' | 'flexible'
   theme: 'light' | 'dark' | 'auto'
   callback: (token: string) => void
-  'error-callback': () => void
+  'error-callback': (errorCode: string) => boolean
   'expired-callback': () => void
   'timeout-callback': () => void
 }
@@ -91,6 +91,7 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetHandle, TurnstileWidget
       promise: Promise<string>
       reject: (error: Error) => void
       resolve: (token: string) => void
+      timeoutId: number
     } | null>(null)
     const tokenRef = useRef('')
     const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
@@ -101,6 +102,11 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetHandle, TurnstileWidget
       reset() {
         tokenRef.current = ''
         onTokenChangeRef.current('')
+        if (pendingVerificationRef.current) {
+          window.clearTimeout(pendingVerificationRef.current.timeoutId)
+          pendingVerificationRef.current.reject(new Error('تمت إعادة ضبط التحقق الأمني.'))
+          pendingVerificationRef.current = null
+        }
         if (widgetIdRef.current && window.turnstile) {
           window.turnstile.reset(widgetIdRef.current)
         }
@@ -127,10 +133,19 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetHandle, TurnstileWidget
           rejectVerification = reject
         })
 
+        const timeoutId = window.setTimeout(() => {
+          pendingVerificationRef.current?.reject(
+            new Error('استغرق التحقق الأمني وقتًا أطول من المتوقع، يرجى المحاولة مرة أخرى.'),
+          )
+          pendingVerificationRef.current = null
+          setStatus('error')
+        }, 60_000)
+
         pendingVerificationRef.current = {
           promise,
           reject: rejectVerification,
           resolve: resolveVerification,
+          timeoutId,
         }
         setStatus('loading')
         try {
@@ -155,10 +170,10 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetHandle, TurnstileWidget
           widgetIdRef.current = turnstile.render(containerRef.current, {
             sitekey: siteKey,
             action: 'job_application',
-            appearance: 'execute',
+            appearance: 'interaction-only',
             execution: 'execute',
             language: 'ar',
-            retry: 'never',
+            retry: 'auto',
             size: 'flexible',
             theme: 'dark',
             callback: (token) => {
@@ -166,18 +181,37 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetHandle, TurnstileWidget
               tokenRef.current = token
               setStatus('ready')
               onTokenChangeRef.current(token)
+              if (pendingVerificationRef.current) {
+                window.clearTimeout(pendingVerificationRef.current.timeoutId)
+              }
               pendingVerificationRef.current?.resolve(token)
               pendingVerificationRef.current = null
             },
-            'error-callback': () => {
-              if (disposed) return
-              setStatus('error')
+            'error-callback': (errorCode) => {
+              if (disposed) return true
               tokenRef.current = ''
               onTokenChangeRef.current('')
+
+              const retryable = errorCode.startsWith('300')
+                || errorCode.startsWith('600')
+                || errorCode === '110600'
+                || errorCode === '110620'
+                || errorCode === '200500'
+
+              if (retryable) {
+                setStatus('loading')
+                return true
+              }
+
+              setStatus('error')
+              if (pendingVerificationRef.current) {
+                window.clearTimeout(pendingVerificationRef.current.timeoutId)
+              }
               pendingVerificationRef.current?.reject(
                 new Error('تعذر التحقق الأمني، يرجى المحاولة مرة أخرى.'),
               )
               pendingVerificationRef.current = null
+              return true
             },
             'expired-callback': () => {
               if (disposed) return
@@ -190,6 +224,9 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetHandle, TurnstileWidget
               setStatus('loading')
               tokenRef.current = ''
               onTokenChangeRef.current('')
+              if (pendingVerificationRef.current) {
+                window.clearTimeout(pendingVerificationRef.current.timeoutId)
+              }
               pendingVerificationRef.current?.reject(
                 new Error('انتهت مهلة التحقق الأمني، يرجى المحاولة مرة أخرى.'),
               )
@@ -207,6 +244,9 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetHandle, TurnstileWidget
         disposed = true
         tokenRef.current = ''
         onTokenChangeRef.current('')
+        if (pendingVerificationRef.current) {
+          window.clearTimeout(pendingVerificationRef.current.timeoutId)
+        }
         pendingVerificationRef.current?.reject(new Error('تم إلغاء التحقق الأمني.'))
         pendingVerificationRef.current = null
         if (widgetIdRef.current && window.turnstile) {

@@ -669,7 +669,7 @@ export function Contact() {
             aria-labelledby="contact-tab-career"
             hidden={activePath !== 'career'}
           >
-            <form className="contact-form" onSubmit={handleCareerSubmit} aria-busy={careerSubmitting}>
+            <form className="contact-form contact-form--career" onSubmit={handleCareerSubmit} aria-busy={careerSubmitting}>
               <div className="career-honeypot" aria-hidden="true">
                 <label htmlFor="career-website">Website</label>
                 <input id="career-website" name="website" type="text" tabIndex={-1} autoComplete="off" />
@@ -692,7 +692,7 @@ export function Contact() {
                   required
                 />
               </div>
-              <div className="form-field">
+              <div className="form-field career-email-field">
                 <label htmlFor="career-email">البريد الإلكتروني</label>
                 <input
                   id="career-email"
@@ -705,7 +705,7 @@ export function Contact() {
                   required
                 />
               </div>
-              <div className="form-field">
+              <div className="form-field form-field--wide career-specialty-field">
                 <label id="career-specialty-label" htmlFor="career-specialty">
                   المسمى الوظيفي أو التخصص
                 </label>
@@ -720,7 +720,7 @@ export function Contact() {
                   value={careerSpecialty}
                 />
               </div>
-              <div className="form-field form-field--wide">
+              <div className="form-field career-portfolio-field">
                 <label htmlFor="portfolio-link">رابط الأعمال أو LinkedIn</label>
                 <input
                   id="portfolio-link"
@@ -802,14 +802,12 @@ export function Contact() {
                 <button
                   className="button button--submit"
                   type="submit"
-                  disabled={careerSubmitting || !turnstileToken}
+                  disabled={careerSubmitting}
                 >
                   <span>
                     {careerSubmitting
                       ? 'جارٍ إرسال الطلب…'
-                      : turnstileToken
-                        ? 'أرسل طلب الانضمام'
-                        : 'بانتظار التحقق الأمني'}
+                      : 'أرسل طلب الانضمام'}
                   </span>
                   <ArrowIcon />
                 </button>

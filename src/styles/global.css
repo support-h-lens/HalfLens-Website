@@ -2264,7 +2264,7 @@ ol {
   align-self: start;
   justify-self: end;
   width: 100%;
-  max-width: 620px;
+  max-width: 680px;
 }
 
 .contact__path-tabs {
@@ -2282,8 +2282,8 @@ ol {
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  min-height: 56px;
-  padding-inline: clamp(16px, 2vw, 24px);
+  min-height: 60px;
+  padding-inline: clamp(18px, 2.1vw, 26px);
   border: 0;
   color: #919b9f;
   background: transparent;
@@ -2367,12 +2367,13 @@ ol {
 .contact-form {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 18px 20px;
+  column-gap: 28px;
+  row-gap: 26px;
   align-self: start;
   justify-self: end;
   width: 100%;
-  max-width: 620px;
-  padding: clamp(20px, 2.2vw, 32px);
+  max-width: 680px;
+  padding: clamp(24px, 2.4vw, 36px);
   border: 1px solid rgba(205, 214, 218, 0.18);
   background: rgba(30, 29, 79, 0.3);
   box-shadow: inset 0 1px rgba(238, 236, 229, 0.025);
@@ -2386,7 +2387,12 @@ ol {
 .form-field {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 10px;
+}
+
+.contact-form--career .career-portfolio-field {
+  grid-column: 2;
+  grid-row: 2;
 }
 
 .form-field--wide {
@@ -2418,7 +2424,7 @@ ol {
 }
 
 .form-field input {
-  min-height: 40px;
+  min-height: 44px;
 }
 
 .form-field textarea {
@@ -2447,11 +2453,11 @@ ol {
 
 .cv-upload {
   display: grid;
-  grid-template-columns: 38px minmax(0, 1fr) auto;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 13px;
-  min-height: 66px;
-  padding: 10px 13px;
+  gap: 16px;
+  min-height: 74px;
+  padding: 12px 15px;
   border: 1px solid rgba(208, 218, 222, 0.2);
   border-radius: 10px;
   background: rgba(11, 10, 36, 0.34);
@@ -2480,8 +2486,8 @@ ol {
 
 .cv-upload__icon {
   display: grid;
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
   border: 1px solid rgba(208, 218, 222, 0.18);
   border-radius: 50%;
   color: #e4e4df;
@@ -2617,7 +2623,7 @@ ol {
   justify-content: space-between;
   gap: 18px;
   width: 100%;
-  min-height: 50px;
+  min-height: 54px;
   padding: 0 16px;
   border: 1px solid rgba(208, 218, 222, 0.2);
   border-radius: 10px;
@@ -2834,8 +2840,9 @@ ol {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 18px;
-  margin-block-start: 4px;
+  gap: 24px;
+  margin-block-start: 8px;
+  padding-block-start: 4px;
 }
 
 .contact-form__footer p {
@@ -3606,8 +3613,8 @@ ol {
 
   .contact-form {
     grid-template-columns: 1fr;
-    gap: 16px;
-    padding: 20px 18px;
+    gap: 19px;
+    padding: 22px 18px;
   }
 
   .contact__path-tabs button {
@@ -3618,6 +3625,11 @@ ol {
 
   .form-field--wide {
     grid-column: auto;
+  }
+
+  .contact-form--career .career-portfolio-field {
+    grid-column: auto;
+    grid-row: auto;
   }
 
   .cv-upload {
@@ -4179,8 +4191,8 @@ ol {
   }
 
   .contact-form {
-    gap: 15px;
-    padding: 16px 12px;
+    gap: 18px;
+    padding: 18px 14px;
   }
 
   .form-field {
@@ -4213,8 +4225,8 @@ ol {
   }
 
   .contact-form__footer {
-    gap: 16px;
-    margin-block-start: 4px;
+    gap: 18px;
+    margin-block-start: 6px;
   }
 
   .footer__top {

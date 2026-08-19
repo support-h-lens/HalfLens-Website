@@ -2570,44 +2570,6 @@ ol {
   background: rgba(139, 50, 36, 0.18);
 }
 
-.turnstile-field {
-  min-height: 0;
-  gap: 0;
-}
-
-.turnstile-verification {
-  display: grid;
-  gap: 0;
-  width: min(100%, 420px);
-  direction: ltr;
-}
-
-.turnstile-verification__widget {
-  min-height: 0;
-  width: 100%;
-}
-
-.turnstile-verification__widget iframe {
-  max-width: 100%;
-}
-
-.turnstile-verification__status,
-.turnstile-field__error {
-  margin: 0;
-  font-size: var(--text-xs);
-  line-height: 1.65;
-  direction: rtl;
-  text-align: right;
-}
-
-.turnstile-verification__status {
-  display: none;
-}
-
-.turnstile-field__error {
-  color: #f0b6a9;
-}
-
 .project-select {
   position: relative;
   z-index: 1;

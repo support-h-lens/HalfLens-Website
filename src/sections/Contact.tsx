@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, FormEvent, KeyboardEvent, RefObject } from 'react'
 import { ArrowIcon } from '../components/ArrowIcon'
-import { TurnstileWidget } from '../components/TurnstileWidget'
-import type { TurnstileWidgetHandle } from '../components/TurnstileWidget'
 import {
   careerDepartments,
   careerSpecialties,
@@ -17,9 +15,6 @@ const careerCvMaxBytes = 10 * 1024 * 1024
 const careerSubmissionEndpoint =
   import.meta.env.VITE_JOB_APPLICATIONS_API_URL ||
   'https://eval.h-lens.co/api/public/job-applications'
-const turnstileSiteKey =
-  import.meta.env.VITE_TURNSTILE_SITE_KEY ||
-  (import.meta.env.DEV ? '1x00000000000000000000AA' : '0x4AAAAAAEUOUaX5tiO3Ksnl')
 
 type CareerSubmissionStatus = {
   kind: 'success' | 'error'
@@ -380,7 +375,6 @@ export function Contact() {
   const careerSpecialtyTriggerRef = useRef<HTMLButtonElement>(null)
   const clientTabRef = useRef<HTMLButtonElement>(null)
   const careerTabRef = useRef<HTMLButtonElement>(null)
-  const turnstileRef = useRef<TurnstileWidgetHandle>(null)
   const [activePath, setActivePath] = useState<ContactPath>('client')
   const [projectType, setProjectType] = useState('')
   const [projectTypeInvalid, setProjectTypeInvalid] = useState(false)
@@ -388,7 +382,6 @@ export function Contact() {
   const [careerSpecialtyInvalid, setCareerSpecialtyInvalid] = useState(false)
   const [careerCvName, setCareerCvName] = useState('')
   const [careerCvError, setCareerCvError] = useState('')
-  const [turnstileToken, setTurnstileToken] = useState('')
   const [careerSubmitting, setCareerSubmitting] = useState(false)
   const [careerSubmissionStatus, setCareerSubmissionStatus] =
     useState<CareerSubmissionStatus>(null)
@@ -482,54 +475,16 @@ export function Contact() {
     payload.append('website', String(data.get('website') ?? ''))
 
     try {
-      let submitted = false
-
-      for (let attempt = 0; attempt < 2; attempt += 1) {
-        let token = ''
-
-        try {
-          token = attempt === 0 && turnstileToken
-            ? turnstileToken
-            : await turnstileRef.current?.verify() || ''
-
-          if (!token) {
-            throw new Error('تعذر تجهيز التحقق الأمني، يرجى المحاولة مرة أخرى.')
-          }
-        } catch (error) {
-          if (attempt === 0) {
-            setTurnstileToken('')
-            turnstileRef.current?.reset()
-            continue
-          }
-          throw error
-        }
-
-        payload.set('cf-turnstile-response', token)
-        const response = await fetch(careerSubmissionEndpoint, {
-          method: 'POST',
-          body: payload,
-        })
-        const result = await response.json().catch(() => ({})) as {
-          code?: string
-          error?: string
-        }
-
-        if (response.ok) {
-          submitted = true
-          break
-        }
-
-        if (result.code === 'turnstile_failed' && attempt === 0) {
-          setTurnstileToken('')
-          turnstileRef.current?.reset()
-          continue
-        }
-
-        throw new Error(result.error || 'تعذر إرسال الطلب الآن، يرجى المحاولة مرة أخرى.')
+      const response = await fetch(careerSubmissionEndpoint, {
+        method: 'POST',
+        body: payload,
+      })
+      const result = await response.json().catch(() => ({})) as {
+        error?: string
       }
 
-      if (!submitted) {
-        throw new Error('تعذر التحقق الأمني، يرجى المحاولة مرة أخرى.')
+      if (!response.ok) {
+        throw new Error(result.error || 'تعذر إرسال الطلب الآن، يرجى المحاولة مرة أخرى.')
       }
 
       form.reset()
@@ -550,8 +505,6 @@ export function Contact() {
       })
     } finally {
       setCareerSubmitting(false)
-      setTurnstileToken('')
-      turnstileRef.current?.reset()
     }
   }
 
@@ -809,15 +762,6 @@ export function Contact() {
                   <p id="career-cv-error" className="cv-upload__error" role="alert">
                     {careerCvError}
                   </p>
-                ) : null}
-              </div>
-              <div className="form-field form-field--wide turnstile-field">
-                {activePath === 'career' ? (
-                  <TurnstileWidget
-                    ref={turnstileRef}
-                    siteKey={turnstileSiteKey}
-                    onTokenChange={setTurnstileToken}
-                  />
                 ) : null}
               </div>
               <div className="contact-form__footer form-field--wide">

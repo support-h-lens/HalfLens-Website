@@ -3,7 +3,13 @@ import type { ChangeEvent, FormEvent, KeyboardEvent, RefObject } from 'react'
 import { ArrowIcon } from '../components/ArrowIcon'
 import { TurnstileWidget } from '../components/TurnstileWidget'
 import type { TurnstileWidgetHandle } from '../components/TurnstileWidget'
-import { contactChannels, contactPaths, projectTypes } from '../data/siteContent'
+import {
+  careerDepartments,
+  careerSpecialties,
+  contactChannels,
+  contactPaths,
+  projectTypes,
+} from '../data/siteContent'
 
 type ContactPath = keyof typeof contactPaths
 
@@ -178,14 +184,208 @@ function ProjectTypeSelect({
   )
 }
 
+interface CareerSpecialtySelectProps {
+  invalid: boolean
+  onChange: (value: string) => void
+  triggerRef: RefObject<HTMLButtonElement>
+  value: string
+}
+
+function CareerSpecialtySelect({
+  invalid,
+  onChange,
+  triggerRef,
+  value,
+}: CareerSpecialtySelectProps) {
+  const rootRef = useRef<HTMLDivElement>(null)
+  const optionsRef = useRef<HTMLUListElement>(null)
+  const [isOpen, setIsOpen] = useState(false)
+  const [activeIndex, setActiveIndex] = useState(0)
+  const selectedIndex = careerSpecialties.findIndex((option) => option.value === value)
+  const selectedOption = selectedIndex >= 0 ? careerSpecialties[selectedIndex] : null
+
+  useEffect(() => {
+    if (!isOpen) return undefined
+
+    const closeOnOutsidePointer = (event: PointerEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) setIsOpen(false)
+    }
+
+    document.addEventListener('pointerdown', closeOnOutsidePointer)
+    return () => document.removeEventListener('pointerdown', closeOnOutsidePointer)
+  }, [isOpen])
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    optionsRef.current
+      ?.querySelector<HTMLElement>(`#career-specialty-option-${activeIndex}`)
+      ?.scrollIntoView({ block: 'nearest' })
+  }, [activeIndex, isOpen])
+
+  const openMenu = (preferredIndex = selectedIndex >= 0 ? selectedIndex : 0) => {
+    setActiveIndex(preferredIndex)
+    setIsOpen(true)
+  }
+
+  const selectOption = (index: number) => {
+    onChange(careerSpecialties[index].value)
+    setActiveIndex(index)
+    setIsOpen(false)
+    triggerRef.current?.focus()
+  }
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    const lastIndex = careerSpecialties.length - 1
+
+    switch (event.key) {
+      case 'ArrowDown':
+        event.preventDefault()
+        if (!isOpen) openMenu()
+        else setActiveIndex((index) => Math.min(index + 1, lastIndex))
+        break
+      case 'ArrowUp':
+        event.preventDefault()
+        if (!isOpen) openMenu(selectedIndex >= 0 ? selectedIndex : lastIndex)
+        else setActiveIndex((index) => Math.max(index - 1, 0))
+        break
+      case 'Home':
+        if (!isOpen) break
+        event.preventDefault()
+        setActiveIndex(0)
+        break
+      case 'End':
+        if (!isOpen) break
+        event.preventDefault()
+        setActiveIndex(lastIndex)
+        break
+      case 'Enter':
+      case ' ':
+        if (!isOpen) break
+        event.preventDefault()
+        selectOption(activeIndex)
+        break
+      case 'Escape':
+        if (!isOpen) break
+        event.preventDefault()
+        setIsOpen(false)
+        break
+      case 'Tab':
+        setIsOpen(false)
+        break
+      default:
+        break
+    }
+  }
+
+  return (
+    <div
+      ref={rootRef}
+      className={`project-select career-specialty-select${
+        isOpen ? ' project-select--open' : ''
+      }${invalid ? ' project-select--invalid' : ''}`}
+    >
+      <input name="specialty" type="hidden" value={value} readOnly />
+      <button
+        ref={triggerRef}
+        id="career-specialty"
+        className="project-select__trigger"
+        type="button"
+        role="combobox"
+        aria-activedescendant={isOpen ? `career-specialty-option-${activeIndex}` : undefined}
+        aria-controls="career-specialty-options"
+        aria-describedby={invalid ? 'career-specialty-error' : undefined}
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
+        aria-invalid={invalid}
+        aria-labelledby="career-specialty-label career-specialty-value"
+        aria-required="true"
+        onClick={() => (isOpen ? setIsOpen(false) : openMenu())}
+        onKeyDown={handleKeyDown}
+      >
+        <span
+          id="career-specialty-value"
+          className={selectedOption ? 'career-specialty-select__value' : 'project-select__placeholder'}
+        >
+          {selectedOption ? (
+            <>
+              <strong>{selectedOption.role}</strong>
+              <small>{selectedOption.department}</small>
+            </>
+          ) : (
+            'اختر الإدارة والمسمى الوظيفي'
+          )}
+        </span>
+        <span className="project-select__chevron" aria-hidden="true">
+          <svg viewBox="0 0 16 16">
+            <path d="m3 6 5 5 5-5" />
+          </svg>
+        </span>
+      </button>
+
+      {isOpen ? (
+        <ul
+          ref={optionsRef}
+          id="career-specialty-options"
+          className="project-select__options career-specialty-select__options"
+          role="listbox"
+        >
+          {careerDepartments.map((department) => (
+            <li className="career-specialty-select__group" role="presentation" key={department.name}>
+              <span className="career-specialty-select__group-label">{department.name}</span>
+              <ul role="group" aria-label={department.name}>
+                {department.roles.map((role) => {
+                  const optionIndex = careerSpecialties.findIndex(
+                    (option) => option.department === department.name && option.role === role,
+                  )
+                  const option = careerSpecialties[optionIndex]
+                  const isSelected = option.value === value
+                  const isActive = optionIndex === activeIndex
+
+                  return (
+                    <li
+                      id={`career-specialty-option-${optionIndex}`}
+                      className={`${isActive ? 'is-active' : ''}${
+                        isSelected ? ' is-selected' : ''
+                      }`}
+                      role="option"
+                      aria-selected={isSelected}
+                      key={option.value}
+                      onClick={() => selectOption(optionIndex)}
+                      onPointerDown={(event) => event.preventDefault()}
+                      onPointerMove={() => setActiveIndex(optionIndex)}
+                    >
+                      <span>{role}</span>
+                      <span className="project-select__selected-mark" aria-hidden="true" />
+                    </li>
+                  )
+                })}
+              </ul>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
+      {invalid ? (
+        <p id="career-specialty-error" className="project-select__error" role="alert">
+          يرجى اختيار الإدارة والمسمى الوظيفي.
+        </p>
+      ) : null}
+    </div>
+  )
+}
+
 export function Contact() {
   const projectTypeTriggerRef = useRef<HTMLButtonElement>(null)
+  const careerSpecialtyTriggerRef = useRef<HTMLButtonElement>(null)
   const clientTabRef = useRef<HTMLButtonElement>(null)
   const careerTabRef = useRef<HTMLButtonElement>(null)
   const turnstileRef = useRef<TurnstileWidgetHandle>(null)
   const [activePath, setActivePath] = useState<ContactPath>('client')
   const [projectType, setProjectType] = useState('')
   const [projectTypeInvalid, setProjectTypeInvalid] = useState(false)
+  const [careerSpecialty, setCareerSpecialty] = useState('')
+  const [careerSpecialtyInvalid, setCareerSpecialtyInvalid] = useState(false)
   const [careerCvName, setCareerCvName] = useState('')
   const [careerCvError, setCareerCvError] = useState('')
   const [turnstileToken, setTurnstileToken] = useState('')
@@ -253,6 +453,12 @@ export function Contact() {
   const handleCareerSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
+    if (!careerSpecialty) {
+      setCareerSpecialtyInvalid(true)
+      window.requestAnimationFrame(() => careerSpecialtyTriggerRef.current?.focus())
+      return
+    }
+
     const form = event.currentTarget
     const data = new FormData(form)
     const name = String(data.get('careerName') ?? '')
@@ -293,6 +499,8 @@ export function Contact() {
       }
 
       form.reset()
+      setCareerSpecialty('')
+      setCareerSpecialtyInvalid(false)
       setCareerCvName('')
       setCareerCvError('')
       setCareerSubmissionStatus({
@@ -498,8 +706,19 @@ export function Contact() {
                 />
               </div>
               <div className="form-field form-field--wide">
-                <label htmlFor="specialty">المسمى الوظيفي أو التخصص</label>
-                <input id="specialty" name="specialty" type="text" minLength={2} maxLength={160} required />
+                <label id="career-specialty-label" htmlFor="career-specialty">
+                  المسمى الوظيفي أو التخصص
+                </label>
+                <CareerSpecialtySelect
+                  invalid={careerSpecialtyInvalid}
+                  onChange={(value) => {
+                    setCareerSpecialty(value)
+                    setCareerSpecialtyInvalid(false)
+                    setCareerSubmissionStatus(null)
+                  }}
+                  triggerRef={careerSpecialtyTriggerRef}
+                  value={careerSpecialty}
+                />
               </div>
               <div className="form-field form-field--wide">
                 <label htmlFor="portfolio-link">رابط الأعمال أو LinkedIn</label>

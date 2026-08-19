@@ -2264,14 +2264,14 @@ ol {
   align-self: start;
   justify-self: end;
   width: 100%;
-  max-width: 700px;
+  max-width: 620px;
 }
 
 .contact__path-tabs {
   position: relative;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin-block-end: 18px;
+  margin-block-end: 12px;
   border: 1px solid rgba(205, 214, 218, 0.18);
   background: rgba(30, 29, 79, 0.2);
 }
@@ -2281,9 +2281,9 @@ ol {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 18px;
-  min-height: 66px;
-  padding-inline: clamp(18px, 2.3vw, 30px);
+  gap: 14px;
+  min-height: 56px;
+  padding-inline: clamp(16px, 2vw, 24px);
   border: 0;
   color: #919b9f;
   background: transparent;
@@ -2367,12 +2367,12 @@ ol {
 .contact-form {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
+  gap: 18px 20px;
   align-self: start;
   justify-self: end;
   width: 100%;
-  max-width: 700px;
-  padding: clamp(24px, 2.8vw, 42px);
+  max-width: 620px;
+  padding: clamp(20px, 2.2vw, 32px);
   border: 1px solid rgba(205, 214, 218, 0.18);
   background: rgba(30, 29, 79, 0.3);
   box-shadow: inset 0 1px rgba(238, 236, 229, 0.025);
@@ -2386,7 +2386,7 @@ ol {
 .form-field {
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 7px;
 }
 
 .form-field--wide {
@@ -2418,7 +2418,7 @@ ol {
 }
 
 .form-field input {
-  min-height: 44px;
+  min-height: 40px;
 }
 
 .form-field textarea {
@@ -2447,11 +2447,11 @@ ol {
 
 .cv-upload {
   display: grid;
-  grid-template-columns: 42px minmax(0, 1fr) auto;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 16px;
-  min-height: 74px;
-  padding: 12px 15px;
+  gap: 13px;
+  min-height: 66px;
+  padding: 10px 13px;
   border: 1px solid rgba(208, 218, 222, 0.2);
   border-radius: 10px;
   background: rgba(11, 10, 36, 0.34);
@@ -2480,8 +2480,8 @@ ol {
 
 .cv-upload__icon {
   display: grid;
-  width: 42px;
-  height: 42px;
+  width: 38px;
+  height: 38px;
   border: 1px solid rgba(208, 218, 222, 0.18);
   border-radius: 50%;
   color: #e4e4df;
@@ -2565,18 +2565,19 @@ ol {
 }
 
 .turnstile-field {
-  gap: 9px;
+  min-height: 0;
+  gap: 0;
 }
 
 .turnstile-verification {
   display: grid;
-  gap: 8px;
+  gap: 0;
   width: min(100%, 420px);
   direction: ltr;
 }
 
 .turnstile-verification__widget {
-  min-height: 65px;
+  min-height: 0;
   width: 100%;
 }
 
@@ -2594,7 +2595,7 @@ ol {
 }
 
 .turnstile-verification__status {
-  color: var(--color-off-white-muted);
+  display: none;
 }
 
 .turnstile-field__error {
@@ -2616,7 +2617,7 @@ ol {
   justify-content: space-between;
   gap: 18px;
   width: 100%;
-  min-height: 54px;
+  min-height: 50px;
   padding: 0 16px;
   border: 1px solid rgba(208, 218, 222, 0.2);
   border-radius: 10px;
@@ -2833,7 +2834,7 @@ ol {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
+  gap: 18px;
   margin-block-start: 4px;
 }
 
@@ -2910,7 +2911,7 @@ ol {
   grid-template-columns: minmax(210px, 0.9fr) minmax(390px, 1.35fr) minmax(250px, 1fr);
   align-items: stretch;
   gap: 0;
-  padding-block: clamp(48px, 4.8vw, 76px) clamp(38px, 3.8vw, 56px);
+  padding-block: clamp(36px, 3.8vw, 60px) clamp(30px, 3vw, 44px);
   border-block-end: 1px solid var(--line-dark);
 }
 
@@ -2921,7 +2922,7 @@ ol {
 }
 
 .footer__brand {
-  width: min(20vw, 230px);
+  width: min(18vw, 190px);
   align-self: center;
   padding-inline-end: clamp(24px, 4vw, 68px);
 }
@@ -2935,9 +2936,9 @@ ol {
 }
 
 .footer__column h2 {
-  margin-block-end: 16px;
+  margin-block-end: 12px;
   color: #e0e4e2;
-  font-size: var(--text-lg);
+  font-size: var(--text-body);
   font-weight: 500;
   line-height: var(--leading-ui);
 }
@@ -2947,7 +2948,7 @@ ol {
   gap: 4px;
   color: #839096;
   font-size: var(--text-sm);
-  line-height: 1.62;
+  line-height: 1.5;
 }
 
 .footer__column li {
@@ -2965,7 +2966,7 @@ ol {
 
 .footer__manifesto {
   display: flex;
-  min-height: 180px;
+  min-height: 140px;
   flex-direction: column;
   justify-content: space-between;
   padding-inline-start: clamp(28px, 4vw, 68px);
@@ -2994,7 +2995,7 @@ ol {
   max-width: 11ch;
   padding-block: 0.12em;
   color: var(--white);
-  font-size: clamp(2rem, 2.8vw, 3.5rem);
+  font-size: clamp(1.8rem, 2.4vw, 3rem);
   font-weight: 400;
   line-height: 1.2;
   text-wrap: balance;
@@ -3012,7 +3013,7 @@ ol {
 .footer__links {
   display: flex;
   justify-content: space-between;
-  padding-block: 26px;
+  padding-block: 20px;
   border-block-end: 1px solid var(--line-dark);
 }
 
@@ -3042,7 +3043,7 @@ ol {
 .footer__legal {
   display: flex;
   justify-content: space-between;
-  padding-block: 18px 24px;
+  padding-block: 14px 18px;
   color: #707d85;
   font-family: var(--font-technical);
   font-size: var(--text-xs);
@@ -3605,13 +3606,13 @@ ol {
 
   .contact-form {
     grid-template-columns: 1fr;
-    gap: 20px;
-    padding: 24px 20px;
+    gap: 16px;
+    padding: 20px 18px;
   }
 
   .contact__path-tabs button {
-    min-height: 60px;
-    padding-inline: 14px;
+    min-height: 52px;
+    padding-inline: 12px;
     font-size: var(--text-body);
   }
 
@@ -3659,11 +3660,11 @@ ol {
   .footer__top {
     display: grid;
     grid-template-columns: 1fr;
-    padding-block: 50px 34px;
+    padding-block: 40px 28px;
   }
 
   .footer__brand {
-    width: 190px;
+    width: 170px;
     padding-inline-end: 0;
   }
 
@@ -3671,7 +3672,7 @@ ol {
     width: 100%;
     grid-template-columns: minmax(0, 1fr) minmax(92px, 0.58fr);
     gap: 24px;
-    padding: 30px 0;
+    padding: 24px 0;
     border-block: 1px solid var(--line-dark);
     border-inline: 0;
   }
@@ -3687,8 +3688,8 @@ ol {
   }
 
   .footer__manifesto {
-    min-height: 190px;
-    padding-block: 24px 0;
+    min-height: 150px;
+    padding-block: 20px 0;
     border-block-start: 0;
   }
 
@@ -4167,7 +4168,7 @@ ol {
   }
 
   .contact__path-tabs button {
-    min-height: 56px;
+    min-height: 50px;
     gap: 8px;
     padding-inline: 12px;
     font-size: clamp(0.98rem, 4.4vw, 1.12rem);
@@ -4178,8 +4179,8 @@ ol {
   }
 
   .contact-form {
-    gap: 18px;
-    padding: 20px 15px;
+    gap: 15px;
+    padding: 16px 12px;
   }
 
   .form-field {
@@ -4217,23 +4218,23 @@ ol {
   }
 
   .footer__top {
-    padding-block: 44px 30px;
+    padding-block: 34px 24px;
   }
 
   .footer__brand {
-    width: min(48vw, 172px);
+    width: min(44vw, 150px);
     justify-self: center;
   }
 
   .footer__directory {
     grid-template-columns: minmax(0, 1.35fr) minmax(86px, 0.65fr);
     gap: 20px;
-    padding-block: 26px;
+    padding-block: 20px;
   }
 
   .footer__manifesto {
-    min-height: 170px;
-    padding-block-start: 22px;
+    min-height: 130px;
+    padding-block-start: 18px;
   }
 
   .footer__statement {
@@ -4244,7 +4245,7 @@ ol {
 
   .footer__links {
     gap: 24px;
-    padding-block: 24px;
+    padding-block: 18px;
   }
 
   .footer__links nav {
@@ -4253,7 +4254,7 @@ ol {
 
   .footer__legal {
     gap: 12px;
-    padding-block: 18px max(22px, env(safe-area-inset-bottom, 0px));
+    padding-block: 14px max(18px, env(safe-area-inset-bottom, 0px));
     line-height: 1.7;
   }
 }

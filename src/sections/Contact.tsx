@@ -628,7 +628,7 @@ export function Contact() {
                 <label htmlFor="company">الجهة</label>
                 <input id="company" name="company" type="text" autoComplete="organization" />
               </div>
-              <div className="form-field form-field--wide">
+              <div className="form-field">
                 <label htmlFor="email">البريد الإلكتروني</label>
                 <input
                   id="email"
@@ -640,7 +640,7 @@ export function Contact() {
                   required
                 />
               </div>
-              <div className="form-field form-field--wide">
+              <div className="form-field">
                 <label id="project-type-label" htmlFor="project-type">نوع المشروع</label>
                 <ProjectTypeSelect
                   invalid={projectTypeInvalid}
@@ -692,7 +692,7 @@ export function Contact() {
                   required
                 />
               </div>
-              <div className="form-field form-field--wide">
+              <div className="form-field">
                 <label htmlFor="career-email">البريد الإلكتروني</label>
                 <input
                   id="career-email"
@@ -705,7 +705,7 @@ export function Contact() {
                   required
                 />
               </div>
-              <div className="form-field form-field--wide">
+              <div className="form-field">
                 <label id="career-specialty-label" htmlFor="career-specialty">
                   المسمى الوظيفي أو التخصص
                 </label>
@@ -778,7 +778,6 @@ export function Contact() {
                 ) : null}
               </div>
               <div className="form-field form-field--wide turnstile-field">
-                <span className="form-field__label">التحقق الأمني</span>
                 {activePath === 'career' ? (
                   <TurnstileWidget
                     ref={turnstileRef}

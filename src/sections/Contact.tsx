@@ -1,14 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, FormEvent, KeyboardEvent, RefObject } from 'react'
 import { ArrowIcon } from '../components/ArrowIcon'
+import { TurnstileWidget } from '../components/TurnstileWidget'
+import type { TurnstileWidgetHandle } from '../components/TurnstileWidget'
 import { contactChannels, contactPaths, projectTypes } from '../data/siteContent'
 
 type ContactPath = keyof typeof contactPaths
 
 const careerCvMaxBytes = 10 * 1024 * 1024
 const careerSubmissionEndpoint =
-  import.meta.env.VITE_CAREERS_API_URL ||
-  'https://svqnzpjotlxncrosuatk.supabase.co/functions/v1/submit-job-application'
+  import.meta.env.VITE_JOB_APPLICATIONS_API_URL ||
+  'https://eval.h-lens.co/api/public/job-applications'
+const turnstileSiteKey =
+  import.meta.env.VITE_TURNSTILE_SITE_KEY ||
+  (import.meta.env.DEV ? '1x00000000000000000000AA' : '0x4AAAAAAEUOUaX5tiO3Ksnl')
 
 type CareerSubmissionStatus = {
   kind: 'success' | 'error'
@@ -177,11 +182,14 @@ export function Contact() {
   const projectTypeTriggerRef = useRef<HTMLButtonElement>(null)
   const clientTabRef = useRef<HTMLButtonElement>(null)
   const careerTabRef = useRef<HTMLButtonElement>(null)
+  const turnstileRef = useRef<TurnstileWidgetHandle>(null)
   const [activePath, setActivePath] = useState<ContactPath>('client')
   const [projectType, setProjectType] = useState('')
   const [projectTypeInvalid, setProjectTypeInvalid] = useState(false)
   const [careerCvName, setCareerCvName] = useState('')
   const [careerCvError, setCareerCvError] = useState('')
+  const [turnstileToken, setTurnstileToken] = useState('')
+  const [turnstileError, setTurnstileError] = useState('')
   const [careerSubmitting, setCareerSubmitting] = useState(false)
   const [careerSubmissionStatus, setCareerSubmissionStatus] =
     useState<CareerSubmissionStatus>(null)
@@ -255,6 +263,10 @@ export function Contact() {
     const cv = data.get('careerCv')
 
     if (!(cv instanceof File) || cv.size === 0) return
+    if (!turnstileToken) {
+      setTurnstileError('أكمل التحقق الأمني قبل إرسال الطلب.')
+      return
+    }
 
     setCareerSubmitting(true)
     setCareerSubmissionStatus(null)
@@ -266,6 +278,7 @@ export function Contact() {
     payload.append('specialty', specialty)
     payload.append('portfolio_url', portfolio)
     payload.append('cv', cv)
+    payload.append('cf-turnstile-response', turnstileToken)
     payload.append('website', String(data.get('website') ?? ''))
 
     try {
@@ -295,6 +308,8 @@ export function Contact() {
       })
     } finally {
       setCareerSubmitting(false)
+      setTurnstileToken('')
+      turnstileRef.current?.reset()
     }
   }
 
@@ -543,12 +558,41 @@ export function Contact() {
                   </p>
                 ) : null}
               </div>
+              <div className="form-field form-field--wide turnstile-field">
+                <span className="form-field__label">التحقق الأمني</span>
+                {activePath === 'career' ? (
+                  <TurnstileWidget
+                    ref={turnstileRef}
+                    siteKey={turnstileSiteKey}
+                    onTokenChange={(token) => {
+                      setTurnstileToken(token)
+                      if (token) setTurnstileError('')
+                    }}
+                    onError={setTurnstileError}
+                  />
+                ) : null}
+                {turnstileError ? (
+                  <p className="turnstile-field__error" role="alert">
+                    {turnstileError}
+                  </p>
+                ) : null}
+              </div>
               <div className="contact-form__footer form-field--wide">
                 <p>
                   سيصل طلبك وملفاتك مباشرة وبشكل آمن إلى فريق الموارد البشرية.
                 </p>
-                <button className="button button--submit" type="submit" disabled={careerSubmitting}>
-                  <span>{careerSubmitting ? 'جارٍ إرسال الطلب…' : 'أرسل طلب الانضمام'}</span>
+                <button
+                  className="button button--submit"
+                  type="submit"
+                  disabled={careerSubmitting || !turnstileToken}
+                >
+                  <span>
+                    {careerSubmitting
+                      ? 'جارٍ إرسال الطلب…'
+                      : turnstileToken
+                        ? 'أرسل طلب الانضمام'
+                        : 'بانتظار التحقق الأمني'}
+                  </span>
                   <ArrowIcon />
                 </button>
               </div>

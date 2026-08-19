@@ -389,7 +389,6 @@ export function Contact() {
   const [careerCvName, setCareerCvName] = useState('')
   const [careerCvError, setCareerCvError] = useState('')
   const [turnstileToken, setTurnstileToken] = useState('')
-  const [turnstileError, setTurnstileError] = useState('')
   const [careerSubmitting, setCareerSubmitting] = useState(false)
   const [careerSubmissionStatus, setCareerSubmissionStatus] =
     useState<CareerSubmissionStatus>(null)
@@ -469,10 +468,6 @@ export function Contact() {
     const cv = data.get('careerCv')
 
     if (!(cv instanceof File) || cv.size === 0) return
-    if (!turnstileToken) {
-      setTurnstileError('أكمل التحقق الأمني قبل إرسال الطلب.')
-      return
-    }
 
     setCareerSubmitting(true)
     setCareerSubmissionStatus(null)
@@ -484,18 +479,57 @@ export function Contact() {
     payload.append('specialty', specialty)
     payload.append('portfolio_url', portfolio)
     payload.append('cv', cv)
-    payload.append('cf-turnstile-response', turnstileToken)
     payload.append('website', String(data.get('website') ?? ''))
 
     try {
-      const response = await fetch(careerSubmissionEndpoint, {
-        method: 'POST',
-        body: payload,
-      })
-      const result = await response.json().catch(() => ({})) as { error?: string }
+      let submitted = false
 
-      if (!response.ok) {
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        let token = ''
+
+        try {
+          token = attempt === 0 && turnstileToken
+            ? turnstileToken
+            : await turnstileRef.current?.verify() || ''
+
+          if (!token) {
+            throw new Error('تعذر تجهيز التحقق الأمني، يرجى المحاولة مرة أخرى.')
+          }
+        } catch (error) {
+          if (attempt === 0) {
+            setTurnstileToken('')
+            turnstileRef.current?.reset()
+            continue
+          }
+          throw error
+        }
+
+        payload.set('cf-turnstile-response', token)
+        const response = await fetch(careerSubmissionEndpoint, {
+          method: 'POST',
+          body: payload,
+        })
+        const result = await response.json().catch(() => ({})) as {
+          code?: string
+          error?: string
+        }
+
+        if (response.ok) {
+          submitted = true
+          break
+        }
+
+        if (result.code === 'turnstile_failed' && attempt === 0) {
+          setTurnstileToken('')
+          turnstileRef.current?.reset()
+          continue
+        }
+
         throw new Error(result.error || 'تعذر إرسال الطلب الآن، يرجى المحاولة مرة أخرى.')
+      }
+
+      if (!submitted) {
+        throw new Error('تعذر التحقق الأمني، يرجى المحاولة مرة أخرى.')
       }
 
       form.reset()
@@ -782,17 +816,8 @@ export function Contact() {
                   <TurnstileWidget
                     ref={turnstileRef}
                     siteKey={turnstileSiteKey}
-                    onTokenChange={(token) => {
-                      setTurnstileToken(token)
-                      if (token) setTurnstileError('')
-                    }}
-                    onError={setTurnstileError}
+                    onTokenChange={setTurnstileToken}
                   />
-                ) : null}
-                {turnstileError ? (
-                  <p className="turnstile-field__error" role="alert">
-                    {turnstileError}
-                  </p>
                 ) : null}
               </div>
               <div className="contact-form__footer form-field--wide">

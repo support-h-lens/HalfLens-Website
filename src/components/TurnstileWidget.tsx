@@ -6,7 +6,9 @@ interface TurnstileRenderOptions {
   sitekey: string
   action: string
   appearance: 'always' | 'execute' | 'interaction-only'
+  execution: 'render' | 'execute'
   language: string
+  retry: 'auto' | 'never'
   size: 'normal' | 'compact' | 'flexible'
   theme: 'light' | 'dark' | 'auto'
   callback: (token: string) => void
@@ -17,6 +19,7 @@ interface TurnstileRenderOptions {
 
 interface TurnstileApi {
   render: (container: HTMLElement, options: TurnstileRenderOptions) => TurnstileWidgetId
+  execute: (widgetId: TurnstileWidgetId) => void
   remove: (widgetId: TurnstileWidgetId) => void
   reset: (widgetId: TurnstileWidgetId) => void
 }
@@ -29,10 +32,10 @@ declare global {
 
 export interface TurnstileWidgetHandle {
   reset: () => void
+  verify: () => Promise<string>
 }
 
 interface TurnstileWidgetProps {
-  onError: (message: string) => void
   onTokenChange: (token: string) => void
   siteKey: string
 }
@@ -79,22 +82,64 @@ function loadTurnstile() {
 }
 
 export const TurnstileWidget = forwardRef<TurnstileWidgetHandle, TurnstileWidgetProps>(
-  function TurnstileWidget({ onError, onTokenChange, siteKey }, forwardedRef) {
+  function TurnstileWidget({ onTokenChange, siteKey }, forwardedRef) {
     const containerRef = useRef<HTMLDivElement>(null)
     const widgetIdRef = useRef<TurnstileWidgetId | null>(null)
-    const onErrorRef = useRef(onError)
+    const loadErrorRef = useRef(false)
     const onTokenChangeRef = useRef(onTokenChange)
+    const pendingVerificationRef = useRef<{
+      promise: Promise<string>
+      reject: (error: Error) => void
+      resolve: (token: string) => void
+    } | null>(null)
+    const tokenRef = useRef('')
     const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
 
-    onErrorRef.current = onError
     onTokenChangeRef.current = onTokenChange
 
     useImperativeHandle(forwardedRef, () => ({
       reset() {
+        tokenRef.current = ''
         onTokenChangeRef.current('')
         if (widgetIdRef.current && window.turnstile) {
           window.turnstile.reset(widgetIdRef.current)
         }
+      },
+      async verify() {
+        if (tokenRef.current) return tokenRef.current
+
+        const readyDeadline = window.performance.now() + 5000
+        while (!widgetIdRef.current || !window.turnstile) {
+          if (loadErrorRef.current || window.performance.now() >= readyDeadline) {
+            throw new Error('تعذر تجهيز التحقق الأمني. تحقق من اتصالك ثم حاول مرة أخرى.')
+          }
+          await new Promise<void>((resolve) => window.setTimeout(resolve, 50))
+        }
+
+        if (pendingVerificationRef.current) {
+          return pendingVerificationRef.current.promise
+        }
+
+        let resolveVerification!: (token: string) => void
+        let rejectVerification!: (error: Error) => void
+        const promise = new Promise<string>((resolve, reject) => {
+          resolveVerification = resolve
+          rejectVerification = reject
+        })
+
+        pendingVerificationRef.current = {
+          promise,
+          reject: rejectVerification,
+          resolve: resolveVerification,
+        }
+        setStatus('loading')
+        try {
+          window.turnstile.execute(widgetIdRef.current)
+        } catch {
+          pendingVerificationRef.current = null
+          throw new Error('تعذر بدء التحقق الأمني، يرجى المحاولة مرة أخرى.')
+        }
+        return promise
       },
     }), [])
 
@@ -102,6 +147,7 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetHandle, TurnstileWidget
       let disposed = false
 
       setStatus('loading')
+      loadErrorRef.current = false
       loadTurnstile()
         .then((turnstile) => {
           if (disposed || !containerRef.current || widgetIdRef.current) return
@@ -109,42 +155,60 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetHandle, TurnstileWidget
           widgetIdRef.current = turnstile.render(containerRef.current, {
             sitekey: siteKey,
             action: 'job_application',
-            appearance: 'interaction-only',
+            appearance: 'execute',
+            execution: 'execute',
             language: 'ar',
+            retry: 'never',
             size: 'flexible',
             theme: 'dark',
             callback: (token) => {
               if (disposed) return
+              tokenRef.current = token
               setStatus('ready')
               onTokenChangeRef.current(token)
+              pendingVerificationRef.current?.resolve(token)
+              pendingVerificationRef.current = null
             },
             'error-callback': () => {
               if (disposed) return
               setStatus('error')
+              tokenRef.current = ''
               onTokenChangeRef.current('')
-              onErrorRef.current('تعذر إكمال التحقق الأمني. حدّث الصفحة وحاول مرة أخرى.')
+              pendingVerificationRef.current?.reject(
+                new Error('تعذر التحقق الأمني، يرجى المحاولة مرة أخرى.'),
+              )
+              pendingVerificationRef.current = null
             },
             'expired-callback': () => {
               if (disposed) return
               setStatus('loading')
+              tokenRef.current = ''
               onTokenChangeRef.current('')
             },
             'timeout-callback': () => {
               if (disposed) return
               setStatus('loading')
+              tokenRef.current = ''
               onTokenChangeRef.current('')
+              pendingVerificationRef.current?.reject(
+                new Error('انتهت مهلة التحقق الأمني، يرجى المحاولة مرة أخرى.'),
+              )
+              pendingVerificationRef.current = null
             },
           })
         })
         .catch(() => {
           if (disposed) return
+          loadErrorRef.current = true
           setStatus('error')
-          onErrorRef.current('تعذر تحميل التحقق الأمني. تحقق من اتصالك ثم حدّث الصفحة.')
         })
 
       return () => {
         disposed = true
+        tokenRef.current = ''
         onTokenChangeRef.current('')
+        pendingVerificationRef.current?.reject(new Error('تم إلغاء التحقق الأمني.'))
+        pendingVerificationRef.current = null
         if (widgetIdRef.current && window.turnstile) {
           window.turnstile.remove(widgetIdRef.current)
         }

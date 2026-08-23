@@ -1,5 +1,6 @@
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
+import { resolve } from 'node:path'
 
 function immutableMediaCache(): Plugin {
   return {
@@ -25,6 +26,14 @@ function immutableMediaCache(): Plugin {
 
 export default defineConfig({
   plugins: [react(), immutableMediaCache()],
+  build: {
+    rollupOptions: {
+      input: {
+        website: resolve(__dirname, 'index.html'),
+        admin: resolve(__dirname, 'admin/index.html'),
+      },
+    },
+  },
   server: {
     host: true,
     port: 5173,

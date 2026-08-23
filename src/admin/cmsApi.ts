@@ -1,13 +1,8 @@
 import {
   clients,
-  clientsContent,
+  contactChannels,
   contactContent,
-  footerContent,
-  heroContent,
-  portfolioContent,
   projects,
-  servicesContent,
-  storyContent,
 } from '../data/siteContent'
 import { supabase } from './supabase'
 import type {
@@ -187,19 +182,18 @@ export const importCurrentWebsiteContent = async () => {
   }))
 
   const sectionRows = [
-    { section_key: 'hero', label: 'الرئيسية', content: heroContent, sort_order: 0 },
-    { section_key: 'story', label: 'قصتنا', content: storyContent, sort_order: 1 },
-    { section_key: 'services', label: 'خدماتنا', content: servicesContent, sort_order: 2 },
-    { section_key: 'portfolio', label: 'أعمالنا', content: portfolioContent, sort_order: 3 },
-    { section_key: 'clients', label: 'عملاؤنا', content: clientsContent, sort_order: 4 },
-    { section_key: 'contact', label: 'تواصل معنا', content: contactContent, sort_order: 5 },
-    { section_key: 'footer', label: 'التذييل', content: footerContent, sort_order: 6 },
+    {
+      section_key: 'contact',
+      label: 'بيانات التواصل',
+      content: { ...contactContent, channels: contactChannels },
+      sort_order: 5,
+    },
   ].map((section) => ({ ...section, status: 'published' as const }))
 
   const [projectResult, clientResult, sectionResult] = await Promise.all([
-    supabase.from('website_projects').upsert(projectRows, { onConflict: 'project_code' }),
-    supabase.from('website_clients').upsert(clientRows, { onConflict: 'client_code' }),
-    supabase.from('website_sections').upsert(sectionRows, { onConflict: 'section_key' }),
+    supabase.from('website_projects').upsert(projectRows, { onConflict: 'project_code', ignoreDuplicates: true }),
+    supabase.from('website_clients').upsert(clientRows, { onConflict: 'client_code', ignoreDuplicates: true }),
+    supabase.from('website_sections').upsert(sectionRows, { onConflict: 'section_key', ignoreDuplicates: true }),
   ])
 
   throwIfError(projectResult.error)

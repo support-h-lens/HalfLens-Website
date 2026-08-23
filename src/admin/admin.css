@@ -165,6 +165,19 @@ svg { width: 1.15rem; height: 1.15rem; fill: none; stroke: currentColor; stroke-
 .admin-section-list h2 { margin: .25rem 0; font-size: 1.6rem; font-weight: 400; }
 .admin-section-list p { margin: 0; color: #858ba1; font-size: .78rem; }
 
+.admin-contact-settings { margin-block-start: 2rem; border: 1px solid var(--line); }
+.admin-contact-settings > header { display: grid; grid-template-columns: 1.05fr .95fr; gap: 4rem; align-items: end; padding: clamp(2rem, 4vw, 4rem); border-bottom: 1px solid var(--line); }
+.admin-contact-settings > header h2 { margin: 0; max-width: 34rem; font-size: clamp(2.5rem, 5vw, 5rem); font-weight: 400; line-height: 1.18; }
+.admin-contact-settings > header > p { margin: 0; max-width: 36rem; color: #a4a8ba; line-height: 1.9; }
+.admin-contact-settings__grid { display: grid; grid-template-columns: repeat(2, 1fr); }
+.admin-contact-settings__grid article { position: relative; min-height: 11rem; display: grid; align-content: space-between; gap: 1rem; padding: 1.5rem; border-bottom: 1px solid var(--line); }
+.admin-contact-settings__grid article:nth-child(odd) { border-left: 1px solid var(--line); }
+.admin-contact-settings__grid article > span { position: absolute; inset: 1.2rem auto auto 1.2rem; color: #555c78; font: 500 .66rem Manrope, sans-serif; }
+.admin-contact-settings__grid small { color: #7d839b; font-size: .75rem; }
+.admin-contact-settings__grid strong { align-self: end; color: var(--ivory); font: 400 clamp(1.15rem, 2vw, 1.7rem) Manrope, sans-serif; text-align: left; overflow-wrap: anywhere; }
+.admin-contact-settings > footer { display: flex; align-items: center; justify-content: space-between; gap: 2rem; padding: 1.5rem; }
+.admin-contact-settings > footer > div { display: flex; align-items: center; gap: 1rem; color: #7f859c; font-size: .75rem; }
+
 .admin-redirects > header { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: end; padding: clamp(2rem, 4vw, 4rem); border: 1px solid var(--line); }
 .admin-redirects > header h2 { margin: 0; max-width: 30rem; font-size: clamp(2.4rem, 5vw, 5rem); font-weight: 400; line-height: 1.2; }
 .admin-redirects > header > p { color: #a4a8ba; line-height: 1.9; }
@@ -230,6 +243,7 @@ svg { width: 1.15rem; height: 1.15rem; fill: none; stroke: currentColor; stroke-
   .admin-project-row > .admin-row-actions { grid-column: 2; justify-content: flex-start; }
   .admin-section-list > article { grid-template-columns: 3rem minmax(0, 1fr) auto; }
   .admin-section-list > article > .admin-row-actions { grid-column: 2 / -1; justify-content: flex-start; }
+  .admin-contact-settings > header { gap: 2rem; }
 }
 
 @media (max-width: 760px) {
@@ -259,6 +273,11 @@ svg { width: 1.15rem; height: 1.15rem; fill: none; stroke: currentColor; stroke-
   .admin-section-list > article { grid-template-columns: 2.5rem 1fr; gap: 1rem; }
   .admin-section-list > article > .status-badge { grid-column: 2; }
   .admin-section-list > article > .admin-row-actions { grid-column: 2; }
+  .admin-contact-settings > header { grid-template-columns: 1fr; padding: 2rem 1.2rem; }
+  .admin-contact-settings__grid { grid-template-columns: 1fr; }
+  .admin-contact-settings__grid article:nth-child(odd) { border-left: 0; }
+  .admin-contact-settings > footer { align-items: stretch; flex-direction: column; }
+  .admin-contact-settings > footer > div { align-items: flex-start; flex-direction: column; }
   .admin-redirects > header { grid-template-columns: 1fr; padding: 2rem 1.2rem; }
   .admin-access > header { grid-template-columns: 1fr; gap: 1rem; padding: 2rem 1.2rem; }
   .admin-access__roles { grid-template-columns: 1fr; }

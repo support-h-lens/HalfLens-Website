@@ -40,12 +40,12 @@ function ClientLogo({
   )
 }
 
-export function Clients() {
+export function Clients({ items = clients }: { items?: ClientItem[] }) {
   const sectionRef = useRef<HTMLElement>(null)
   const statRef = useRef<HTMLDivElement>(null)
   const statNumberRef = useRef<HTMLSpanElement>(null)
-  const rowBreak = Math.ceil(clients.length / 2)
-  const clientRows = [clients.slice(0, rowBreak), clients.slice(rowBreak)]
+  const rowBreak = Math.ceil(items.length / 2)
+  const clientRows = [items.slice(0, rowBreak), items.slice(rowBreak)]
 
   useLayoutEffect(() => {
     const section = sectionRef.current
@@ -119,7 +119,7 @@ export function Clients() {
       section.classList.remove('clients--ticker-active')
       context.revert()
     }
-  }, [])
+  }, [items])
 
   return (
     <section

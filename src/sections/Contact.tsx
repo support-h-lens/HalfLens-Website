@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, FormEvent, KeyboardEvent, RefObject } from 'react'
+import type { ContactChannel } from '../types/content'
 import { ArrowIcon } from '../components/ArrowIcon'
 import {
   careerDepartments,
@@ -370,7 +371,7 @@ function CareerSpecialtySelect({
   )
 }
 
-export function Contact() {
+export function Contact({ channels = contactChannels }: { channels?: ContactChannel[] }) {
   const projectTypeTriggerRef = useRef<HTMLButtonElement>(null)
   const careerSpecialtyTriggerRef = useRef<HTMLButtonElement>(null)
   const clientTabRef = useRef<HTMLButtonElement>(null)
@@ -386,7 +387,7 @@ export function Contact() {
   const [careerSubmissionStatus, setCareerSubmissionStatus] =
     useState<CareerSubmissionStatus>(null)
   const activeContent = contactPaths[activePath]
-  const visibleChannels = contactChannels.filter((channel) => {
+  const visibleChannels = channels.filter((channel) => {
     if (activePath === 'career') {
       return channel.href === 'mailto:hr@h-lens.co' || channel.href.startsWith('tel:')
     }

@@ -6,8 +6,11 @@ import { SectionWindow } from './components/SectionWindow'
 import { Clients } from './sections/Clients'
 import { Contact } from './sections/Contact'
 import { Footer } from './sections/Footer'
+import { usePublicWebsiteContent } from './lib/publicCms'
 
 function App() {
+  const cmsContent = usePublicWebsiteContent()
+
   return (
     <>
       <ControlledScroll />
@@ -19,12 +22,12 @@ function App() {
       <main id="main-content">
         <CinematicStory />
 
-        <PortfolioRise />
+        <PortfolioRise projects={cmsContent.projects} />
         <SectionWindow className="section-window--clients" theme="light">
-          <Clients />
+          <Clients items={cmsContent.clients} />
         </SectionWindow>
         <SectionWindow className="section-window--contact" theme="dark">
-          <Contact />
+          <Contact channels={cmsContent.contactChannels} />
         </SectionWindow>
       </main>
 

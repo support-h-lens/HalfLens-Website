@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
+import { contactChannels, contactContent } from '../data/siteContent'
+import type { ContactChannel } from '../types/content'
 import {
   deleteEntity,
   getMembership,
@@ -45,7 +47,7 @@ const navigation: Array<{ id: AdminView; label: string; index: string }> = [
   { id: 'overview', label: 'نظرة عامة', index: '01' },
   { id: 'projects', label: 'الأعمال', index: '02' },
   { id: 'clients', label: 'العملاء', index: '03' },
-  { id: 'sections', label: 'نصوص الموقع', index: '04' },
+  { id: 'sections', label: 'بيانات التواصل', index: '04' },
   { id: 'redirects', label: 'تحويلات SEO', index: '05' },
   { id: 'access', label: 'صلاحيات الدخول', index: '06' },
 ]
@@ -340,39 +342,77 @@ function ClientForm({ client, onSave, onClose }: { client: CmsClient | null; onS
   )
 }
 
-function SectionForm({ section, onSave, onClose }: { section: CmsSection | null; onSave: (section: Parameters<typeof saveSection>[0]) => Promise<void>; onClose: () => void }) {
-  const [sectionKey, setSectionKey] = useState(section?.section_key || '')
-  const [label, setLabel] = useState(section?.label || '')
-  const [content, setContent] = useState(JSON.stringify(section?.content || {}, null, 2))
-  const [status, setStatus] = useState<PublishStatus>(section?.status || 'draft')
-  const [sortOrder, setSortOrder] = useState(section?.sort_order?.toString() || '0')
+const readContactChannels = (section: CmsSection | null): ContactChannel[] => {
+  const channels = section?.content.channels
+  if (!Array.isArray(channels)) return contactChannels
+
+  const validChannels = channels.filter((channel): channel is ContactChannel => {
+    if (!channel || typeof channel !== 'object') return false
+    const value = channel as Partial<ContactChannel>
+    return (
+      typeof value.label === 'string' &&
+      typeof value.value === 'string' &&
+      typeof value.href === 'string'
+    )
+  })
+
+  return validChannels.length > 0 ? validChannels : contactChannels
+}
+
+const phoneHref = (value: string) => `tel:${value.replace(/[^\d+]/g, '')}`
+
+function ContactSettingsForm({ section, onSave, onClose }: { section: CmsSection | null; onSave: (section: Parameters<typeof saveSection>[0]) => Promise<void>; onClose: () => void }) {
+  const currentChannels = readContactChannels(section)
+  const [form, setForm] = useState({
+    businessEmail: currentChannels[0]?.value || contactChannels[0].value,
+    hrEmail: currentChannels[1]?.value || contactChannels[1].value,
+    primaryPhone: currentChannels[2]?.value || contactChannels[2].value,
+    secondaryPhone: currentChannels[3]?.value || contactChannels[3].value,
+  })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const update = (key: keyof typeof form, value: string) => {
+    setForm((current) => ({ ...current, [key]: value }))
+  }
+
   const submit = async (event: FormEvent) => {
     event.preventDefault()
     setSaving(true)
     setError('')
     try {
-      const parsed = JSON.parse(content) as Record<string, unknown>
-      await onSave({ ...(section?.id ? { id: section.id } : {}), section_key: sectionKey, label, content: parsed, status, sort_order: Number(sortOrder) || 0 })
+      const channels: ContactChannel[] = [
+        { label: contactChannels[0].label, value: form.businessEmail.trim(), href: `mailto:${form.businessEmail.trim()}` },
+        { label: contactChannels[1].label, value: form.hrEmail.trim(), href: `mailto:${form.hrEmail.trim()}` },
+        { label: contactChannels[2].label, value: form.primaryPhone.trim(), href: phoneHref(form.primaryPhone) },
+        { label: contactChannels[3].label, value: form.secondaryPhone.trim(), href: phoneHref(form.secondaryPhone) },
+      ]
+
+      await onSave({
+        ...(section?.id ? { id: section.id } : {}),
+        section_key: 'contact',
+        label: 'بيانات التواصل',
+        content: { ...contactContent, ...section?.content, channels },
+        status: 'published',
+        sort_order: 5,
+      })
       onClose()
     } catch (submitError) {
-      setError(submitError instanceof SyntaxError ? 'صيغة JSON غير صحيحة.' : submitError instanceof Error ? submitError.message : 'تعذر حفظ القسم.')
+      setError(submitError instanceof Error ? submitError.message : 'تعذر حفظ بيانات التواصل.')
     } finally {
       setSaving(false)
     }
   }
+
   return (
     <form className="admin-editor-form" onSubmit={submit}>
       <div className="admin-form-grid">
-        <label><span>مفتاح القسم</span><input dir="ltr" value={sectionKey} onChange={(e) => setSectionKey(e.target.value)} required /></label>
-        <label><span>اسم القسم</span><input value={label} onChange={(e) => setLabel(e.target.value)} required /></label>
-        <label><span>الترتيب</span><input type="number" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} /></label>
-        <label><span>الحالة</span><select value={status} onChange={(e) => setStatus(e.target.value as PublishStatus)}><option value="draft">مسودة</option><option value="published">منشور</option><option value="archived">مؤرشف</option></select></label>
-        <label className="span-2"><span>المحتوى المنظم (JSON)</span><textarea className="admin-code-field" dir="ltr" value={content} onChange={(e) => setContent(e.target.value)} rows={18} spellCheck={false} required /></label>
+        <label><span>بريد تطوير الأعمال</span><input dir="ltr" type="email" value={form.businessEmail} onChange={(e) => update('businessEmail', e.target.value)} required /></label>
+        <label><span>بريد الموارد البشرية</span><input dir="ltr" type="email" value={form.hrEmail} onChange={(e) => update('hrEmail', e.target.value)} required /></label>
+        <label><span>رقم الهاتف الأساسي</span><input dir="ltr" type="tel" value={form.primaryPhone} onChange={(e) => update('primaryPhone', e.target.value)} required /></label>
+        <label><span>رقم الهاتف الإضافي</span><input dir="ltr" type="tel" value={form.secondaryPhone} onChange={(e) => update('secondaryPhone', e.target.value)} required /></label>
       </div>
       {error && <Notice tone="error">{error}</Notice>}
-      <footer className="admin-form-actions"><button type="button" className="admin-secondary-button" onClick={onClose}>إلغاء</button><button type="submit" className="admin-primary-button" disabled={saving}>{saving ? 'جارٍ الحفظ…' : 'حفظ القسم'}<ArrowIcon /></button></footer>
+      <footer className="admin-form-actions"><button type="button" className="admin-secondary-button" onClick={onClose}>إلغاء</button><button type="submit" className="admin-primary-button" disabled={saving}>{saving ? 'جارٍ الحفظ…' : 'حفظ ونشر البيانات'}<ArrowIcon /></button></footer>
     </form>
   )
 }
@@ -503,7 +543,24 @@ function Dashboard({ session, membership, onLogout }: { session: Session; member
     drafts: [...data.projects, ...data.clients, ...data.sections].filter((item) => item.status === 'draft').length,
   }), [data])
 
+  const contactSection = data.sections.find((section) => section.section_key === 'contact') || null
+  const currentContactChannels = readContactChannels(contactSection)
   const viewTitle = visibleNavigation.find((item) => item.id === view)?.label || ''
+  const collectionNeedsInitialization =
+    (view === 'projects' && data.projects.length === 0) ||
+    (view === 'clients' && data.clients.length === 0)
+
+  const openPrimaryEditor = () => {
+    if (collectionNeedsInitialization) {
+      void importContent()
+      return
+    }
+
+    if (view === 'projects') setEditor({ kind: 'project', item: null })
+    if (view === 'clients') setEditor({ kind: 'client', item: null })
+    if (view === 'sections') setEditor({ kind: 'section', item: contactSection })
+    if (view === 'redirects') setEditor({ kind: 'redirect', item: null })
+  }
 
   return (
     <div className="admin-shell" dir="rtl">
@@ -524,7 +581,7 @@ function Dashboard({ session, membership, onLogout }: { session: Session; member
           <div><p className="admin-kicker"><span /> LIVE CMS / {visibleNavigation.find((item) => item.id === view)?.index}</p><h1>{viewTitle}</h1></div>
           <div className="admin-topbar__actions">
             <a href="/" target="_blank" rel="noreferrer" className="admin-secondary-button">معاينة الموقع</a>
-            {canEdit && ['projects', 'clients', 'sections', 'redirects'].includes(view) && <button type="button" className="admin-primary-button" onClick={() => setEditor({ kind: view === 'projects' ? 'project' : view === 'clients' ? 'client' : view === 'sections' ? 'section' : 'redirect', item: null })}><span>إضافة جديد</span><span aria-hidden="true">＋</span></button>}
+            {canEdit && ['projects', 'clients', 'sections', 'redirects'].includes(view) && <button type="button" className="admin-primary-button" onClick={openPrimaryEditor}><span>{collectionNeedsInitialization ? 'استيراد المحتوى الحالي' : view === 'sections' ? 'تحرير البيانات' : 'إضافة جديد'}</span><span aria-hidden="true">＋</span></button>}
           </div>
           <select className="admin-mobile-nav" value={view} onChange={(event) => setView(event.target.value as AdminView)} aria-label="القسم الحالي">{visibleNavigation.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select>
         </header>
@@ -539,7 +596,7 @@ function Dashboard({ session, membership, onLogout }: { session: Session; member
                 <div className="admin-stat-grid">
                   <button type="button" onClick={() => setView('projects')}><small>الأعمال</small><strong>{counts.projects.toString().padStart(2, '0')}</strong><span>مشروعًا في لوحة التحكم</span></button>
                   <button type="button" onClick={() => setView('clients')}><small>العملاء</small><strong>{counts.clients.toString().padStart(2, '0')}</strong><span>شعارًا وهوية عميل</span></button>
-                  <button type="button" onClick={() => setView('sections')}><small>الأقسام</small><strong>{counts.sections.toString().padStart(2, '0')}</strong><span>قسمًا قابلًا للتحرير</span></button>
+                  <button type="button" onClick={() => setView('sections')}><small>بيانات التواصل</small><strong>{contactSection ? '01' : '00'}</strong><span>البريد وأرقام الهاتف</span></button>
                   <button type="button" onClick={() => setView('projects')}><small>بانتظار النشر</small><strong>{counts.drafts.toString().padStart(2, '0')}</strong><span>مسودة تحتاج المراجعة</span></button>
                 </div>
                 <div className="admin-overview__lower">
@@ -582,10 +639,27 @@ function Dashboard({ session, membership, onLogout }: { session: Session; member
             )}
 
             {view === 'sections' && (
-              <section className="admin-section-list">
-                {data.sections.length === 0 ? <EmptyState title="لا توجد أقسام بعد" description="هيّئ نصوص الموقع الحالية، ثم حررها بصورة منظمة." /> : data.sections.map((section) => (
-                  <article key={section.id}><div className="admin-section-list__index">{(section.sort_order + 1).toString().padStart(2, '0')}</div><div><small>{section.section_key}</small><h2>{section.label}</h2><p>{Object.keys(section.content).length} حقول منظمة · آخر تحديث {formatDate(section.updated_at)}</p></div><StatusBadge status={section.status} /><div className="admin-row-actions">{canEdit && <><button type="button" onClick={() => setEditor({ kind: 'section', item: section })}>تحرير</button>{section.status !== 'published' ? <button type="button" onClick={() => void changeStatus('website_sections', section.id, 'published')}>نشر</button> : <button type="button" onClick={() => void changeStatus('website_sections', section.id, 'draft')}>مسودة</button>}</>}{canDelete && <button type="button" className="danger" onClick={() => void remove('website_sections', section.id, section.label)}>حذف</button>}</div></article>
-                ))}
+              <section className="admin-contact-settings">
+                <header>
+                  <div>
+                    <p className="admin-kicker"><span /> PUBLIC CONTACT</p>
+                    <h2>الأرقام والبريد<br />كما تظهر للزائر.</h2>
+                  </div>
+                  <p>هذه هي بيانات التواصل الوحيدة المرتبطة بهذا الجزء من لوحة التحكم. عند حفظها ونشرها ستظهر في قسم «تواصل معنا» من دون تغيير تصميمه.</p>
+                </header>
+                <div className="admin-contact-settings__grid">
+                  {currentContactChannels.map((channel, index) => (
+                    <article key={channel.label}>
+                      <span>{String(index + 1).padStart(2, '0')}</span>
+                      <small>{channel.label}</small>
+                      <strong dir="ltr">{channel.value}</strong>
+                    </article>
+                  ))}
+                </div>
+                <footer>
+                  <div>{contactSection ? <><StatusBadge status={contactSection.status} /><span>آخر تحديث {formatDate(contactSection.updated_at)}</span></> : <span>يُستخدم المحتوى الحالي حتى تحفظ البيانات للمرة الأولى.</span>}</div>
+                  {canEdit && <button type="button" className="admin-primary-button" onClick={() => setEditor({ kind: 'section', item: contactSection })}>تحرير بيانات التواصل<ArrowIcon /></button>}
+                </footer>
               </section>
             )}
 
@@ -626,7 +700,7 @@ function Dashboard({ session, membership, onLogout }: { session: Session; member
 
       {editor?.kind === 'project' && <Modal title={editor.item ? 'تحرير المشروع' : 'مشروع جديد'} onClose={() => setEditor(null)}><ProjectForm project={editor.item as CmsProject | null} onClose={() => setEditor(null)} onSave={async (item) => { await saveProject(item); await refresh(); notify('تم حفظ المشروع.') }} /></Modal>}
       {editor?.kind === 'client' && <Modal title={editor.item ? 'تحرير العميل' : 'عميل جديد'} onClose={() => setEditor(null)}><ClientForm client={editor.item as CmsClient | null} onClose={() => setEditor(null)} onSave={async (item) => { await saveClient(item); await refresh(); notify('تم حفظ العميل.') }} /></Modal>}
-      {editor?.kind === 'section' && <Modal title={editor.item ? 'تحرير القسم' : 'قسم جديد'} onClose={() => setEditor(null)}><SectionForm section={editor.item as CmsSection | null} onClose={() => setEditor(null)} onSave={async (item) => { await saveSection(item); await refresh(); notify('تم حفظ القسم.') }} /></Modal>}
+      {editor?.kind === 'section' && <Modal title="تحرير بيانات التواصل" onClose={() => setEditor(null)}><ContactSettingsForm section={editor.item as CmsSection | null} onClose={() => setEditor(null)} onSave={async (item) => { await saveSection(item); await refresh(); notify('تم حفظ ونشر بيانات التواصل.') }} /></Modal>}
       {editor?.kind === 'redirect' && <Modal title={editor.item ? 'تحرير التحويل' : 'تحويل جديد'} onClose={() => setEditor(null)}><RedirectForm redirect={editor.item as CmsRedirect | null} onClose={() => setEditor(null)} onSave={async (item) => { await saveRedirect(item); await refresh(); notify('تم حفظ التحويل.') }} /></Modal>}
     </div>
   )

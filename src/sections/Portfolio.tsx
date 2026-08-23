@@ -4,8 +4,9 @@ import { SectionHeading } from '../components/SectionHeading'
 import { YouTubeHoverMedia } from '../components/YouTubeHoverMedia'
 import { portfolioContent, projects } from '../data/siteContent'
 import { gsap, refreshScrollTriggerWhenReady, ScrollTrigger } from '../lib/gsap'
+import type { ProjectItem } from '../types/content'
 
-export function Portfolio() {
+export function Portfolio({ items = projects }: { items?: ProjectItem[] }) {
   const sectionRef = useRef<HTMLElement>(null)
   const projectRefs = useRef<Array<HTMLElement | null>>([])
 
@@ -164,7 +165,7 @@ export function Portfolio() {
       media?.revert()
       context.revert()
     }
-  }, [])
+  }, [items])
 
   return (
     <section
@@ -181,12 +182,12 @@ export function Portfolio() {
           theme="light"
         />
         <p className="portfolio__counter">
-          المشاريع / {String(projects.length).padStart(2, '0')}
+          المشاريع / {String(items.length).padStart(2, '0')}
         </p>
       </div>
 
       <div className="portfolio__projects">
-        {projects.map((project, index) => {
+        {items.map((project, index) => {
           const projectLabel = project.youtube
             ? `${project.title} — مشاهدة الفيلم على YouTube`
             : `${project.title} — ${portfolioContent.eyebrow}`
@@ -249,7 +250,7 @@ export function Portfolio() {
                       <i />
                       H-LENS SELECTED
                     </span>
-                    <span>{project.id} / {String(projects.length).padStart(2, '0')}</span>
+                    <span>{project.id} / {String(items.length).padStart(2, '0')}</span>
                   </div>
 
                   <div className="project__title-group">

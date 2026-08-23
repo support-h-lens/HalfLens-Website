@@ -1,8 +1,9 @@
 import { useLayoutEffect, useRef } from 'react'
 import { gsap, refreshScrollTriggerWhenReady } from '../lib/gsap'
 import { Portfolio } from '../sections/Portfolio'
+import type { ProjectItem } from '../types/content'
 
-export function PortfolioRise() {
+export function PortfolioRise({ projects }: { projects: ProjectItem[] }) {
   const sectionRef = useRef<HTMLDivElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
 
@@ -84,7 +85,7 @@ export function PortfolioRise() {
   return (
     <div ref={sectionRef} className="portfolio-rise">
       <div ref={panelRef} className="portfolio-rise__panel">
-        <Portfolio />
+        <Portfolio items={projects} />
       </div>
     </div>
   )

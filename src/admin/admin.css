@@ -54,11 +54,11 @@ svg { width: 1.15rem; height: 1.15rem; fill: none; stroke: currentColor; stroke-
 }
 .admin-auth::before { content: ""; position: absolute; z-index: -1; width: min(68vw, 68rem); aspect-ratio: 1; border: 1px solid rgba(255,255,255,.035); border-radius: 50%; transform: translate(-32%, 28%); }
 .admin-auth__frame { position: absolute; inset: clamp(1rem, 3vw, 2.5rem); border: 1px solid rgba(255,255,255,.07); pointer-events: none; }
-.admin-auth__panel { width: min(100%, 35rem); padding: clamp(2rem, 5vw, 4.5rem); border: 1px solid var(--line); background: rgba(12, 16, 50, .86); box-shadow: 0 2rem 7rem rgba(0,0,0,.22); }
-.admin-auth__logo { width: clamp(6.5rem, 10vw, 9rem); margin-block-end: clamp(3rem, 7vh, 5.5rem); }
+.admin-auth__panel { width: min(100%, 31rem); padding: clamp(1.75rem, 4vw, 3.25rem); border: 1px solid var(--line); background: rgba(12, 16, 50, .86); box-shadow: 0 2rem 7rem rgba(0,0,0,.22); }
+.admin-auth__logo { width: clamp(6rem, 9vw, 8rem); margin-block-end: clamp(2.25rem, 5vh, 3.75rem); }
 .admin-kicker { display: flex; align-items: center; gap: .6rem; margin: 0 0 1.25rem; color: var(--muted); font-family: Manrope, sans-serif; font-size: .7rem; font-weight: 500; letter-spacing: .14em; direction: ltr; }
 .admin-kicker > span { width: .4rem; height: .4rem; border-radius: 50%; background: var(--record); box-shadow: 0 0 0 .35rem rgba(201,91,74,.08); }
-.admin-auth h1 { margin: 0; font-size: clamp(3rem, 6vw, 5.5rem); font-weight: 400; line-height: 1.1; letter-spacing: -.035em; }
+.admin-auth h1 { margin: 0; font-size: clamp(2.25rem, 4vw, 3.5rem); font-weight: 400; line-height: 1.15; letter-spacing: -.025em; white-space: nowrap; }
 .admin-auth__intro { max-width: 28rem; margin: 1.5rem 0 0; color: #bdc0cf; font-size: 1.05rem; line-height: 1.85; }
 .admin-auth__form { display: grid; gap: 1.4rem; margin-block-start: 3rem; }
 .admin-auth__form label, .admin-editor-form label { display: grid; gap: .65rem; }
@@ -274,9 +274,9 @@ svg { width: 1.15rem; height: 1.15rem; fill: none; stroke: currentColor; stroke-
   .admin-form-grid { grid-template-columns: 1fr; }
   .admin-form-grid .span-2 { grid-column: 1; }
   .admin-auth { display: flex; align-items: flex-end; width: 100%; padding: 1rem; }
-  .admin-auth__panel { width: 100%; min-width: 0; padding: 2rem 1.25rem; }
-  .admin-auth h1 { font-size: clamp(2.65rem, 14vw, 3.75rem); }
-  .admin-auth__logo { margin-block-end: 3rem; }
+  .admin-auth__panel { width: 100%; min-width: 0; padding: 1.75rem 1.25rem; }
+  .admin-auth h1 { font-size: clamp(1.9rem, 9vw, 2.75rem); }
+  .admin-auth__logo { margin-block-end: 2.25rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

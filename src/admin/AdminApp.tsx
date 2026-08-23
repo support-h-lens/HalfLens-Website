@@ -94,7 +94,7 @@ function Login({ onAuthenticated }: { onAuthenticated: (session: Session) => voi
       <section className="admin-auth__panel">
         <img src="/half-lens-logo-white.png" alt="H-Lens" className="admin-auth__logo" />
         <p className="admin-kicker"><span /> CONTROL ROOM / 01</p>
-        <h1>لوحة تحكم<br />الموقع.</h1>
+        <h1>لوحة تحكم الموقع.</h1>
         <p className="admin-auth__intro">مساحة خاصة لإدارة المحتوى المنشور على موقع H-Lens.</p>
         <form onSubmit={submit} className="admin-auth__form">
           <label>

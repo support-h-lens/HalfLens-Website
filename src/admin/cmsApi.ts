@@ -26,9 +26,16 @@ const throwIfError = (error: { message: string } | null) => {
 }
 
 export const getMembership = async (): Promise<CmsMember | null> => {
+  const { data: currentUserId, error: userError } = await supabase
+    .rpc('website_cms_current_user_id')
+
+  throwIfError(userError)
+  if (!currentUserId) return null
+
   const { data, error } = await supabase
     .from('website_cms_members')
     .select('*')
+    .eq('user_id', currentUserId)
     .eq('is_active', true)
     .maybeSingle()
 

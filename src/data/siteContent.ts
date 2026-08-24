@@ -23,6 +23,9 @@ export const heroContent = {
     'شريك إبداعي في الإنتاج المرئي، نحوّل الأفكار إلى صور تُرى، وتُسمع، وتبقى.',
   primaryAction: 'شاهد أعمالنا',
   secondaryAction: 'ابدأ مشروعك',
+  profileAction: 'استكشف ملفنا',
+  profileMeta: 'PROFILE · PDF',
+  profileHref: '/documents/h-lens-company-profile-afbed7cf.pdf',
 }
 
 export const storyContent = {

@@ -118,9 +118,9 @@ export function OurStory() {
               defaults: { ease: 'none' },
               scrollTrigger: {
                 trigger: section,
-                start: 'top 82%',
-                end: 'bottom 20%',
-                scrub: 0.42,
+                start: 'top top',
+                end: 'bottom bottom',
+                scrub: true,
                 invalidateOnRefresh: true,
               },
             })
@@ -150,46 +150,49 @@ export function OurStory() {
                 { autoAlpha: 1, y: 0, duration: 0.07 },
                 0.09,
               )
-              .to(statement, { autoAlpha: 0, x: -10, duration: 0.07 }, 0.22)
+              .to(statement, { autoAlpha: 1, duration: 0.08 }, 0.2)
+              .to(statement, { autoAlpha: 0, x: -10, duration: 0.08 }, 0.31)
               .fromTo(
                 stat,
                 { autoAlpha: 0, x: -22, y: 8 },
                 { autoAlpha: 1, x: 0, y: 0, duration: 0.08 },
-                0.24,
+                0.33,
               )
               .fromTo(
                 statValue,
                 { autoAlpha: 0, x: -12 },
                 { autoAlpha: 1, x: 0, duration: 0.08 },
-                0.25,
+                0.34,
               )
               .fromTo(
                 statDetails,
                 { autoAlpha: 0, y: 8 },
                 { autoAlpha: 1, y: 0, duration: 0.07, stagger: 0.012 },
-                0.28,
+                0.38,
               )
-              .to(stat, { autoAlpha: 0, x: 10, duration: 0.07 }, 0.52)
+              .to(stat, { autoAlpha: 1, duration: 0.08 }, 0.5)
+              .to(stat, { autoAlpha: 0, x: 10, duration: 0.08 }, 0.62)
               .fromTo(
                 highlights,
                 { autoAlpha: 0, x: 22, y: 8 },
                 { autoAlpha: 1, x: 0, y: 0, duration: 0.08 },
-                0.52,
+                0.64,
               )
               .fromTo(
                 highlightLines,
                 { scaleX: 0 },
                 { scaleX: 1, duration: 0.08, stagger: 0.012 },
-                0.52,
+                0.64,
               )
               .fromTo(
                 [...highlightNumbers, ...highlightCopy],
                 { autoAlpha: 0, y: 8 },
                 { autoAlpha: 1, y: 0, duration: 0.075, stagger: 0.01 },
-                0.55,
+                0.67,
               )
-              .to(highlightLines, { scaleX: 0, duration: 0.08, stagger: 0.008 }, 0.86)
-              .to(highlights, { autoAlpha: 0, x: -10, duration: 0.08 }, 0.86)
+              .to(highlights, { autoAlpha: 1, duration: 0.08 }, 0.8)
+              .to(highlightLines, { scaleX: 0, duration: 0.08, stagger: 0.008 }, 0.89)
+              .to(highlights, { autoAlpha: 0, x: -10, duration: 0.08 }, 0.89)
               .to(timelineSpacer, { progress: 1, duration: 0.06 }, 0.94)
 
             return

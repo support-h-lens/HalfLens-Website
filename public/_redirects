@@ -1,2 +1,4 @@
 /admin /admin/index.html 200
 /admin/* /admin/index.html 200
+/work/* /index.html 200
+/work /index.html 200

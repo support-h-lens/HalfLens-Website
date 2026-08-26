@@ -233,6 +233,51 @@ svg { width: 1.15rem; height: 1.15rem; fill: none; stroke: currentColor; stroke-
 .admin-checkbox input { width: 1.2rem; height: 1.2rem; accent-color: var(--record); }
 .admin-form-actions { display: flex; justify-content: flex-start; gap: .75rem; margin-block-start: 2rem; padding-block-start: 1.5rem; border-top: 1px solid var(--line); }
 
+.admin-modal__panel--clients { width: min(47rem, 94vw); }
+.admin-client-editor { display: grid; gap: 1.35rem; }
+.admin-client-upload {
+  position: relative;
+  min-height: 12rem;
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1.35rem !important;
+  padding: 1.5rem;
+  border: 1px dashed var(--line-strong);
+  background: rgba(255,255,255,.018);
+  cursor: pointer;
+  transition: border-color .18s ease, background-color .18s ease, transform .18s ease;
+}
+.admin-client-upload:hover,
+.admin-client-upload.is-dragging { border-color: rgba(134,197,172,.7); background: rgba(134,197,172,.055); }
+.admin-client-upload.is-dragging { transform: scale(.995); }
+.admin-client-upload__input { position: absolute; width: 1px !important; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+.admin-client-upload__icon { width: 4rem; height: 4rem; display: grid; place-items: center; border: 1px solid var(--line-strong); border-radius: 50%; color: var(--ivory); background: rgba(255,255,255,.025); }
+.admin-client-upload__icon svg { width: 1.45rem; height: 1.45rem; }
+.admin-client-upload__copy { display: grid; gap: .4rem; }
+.admin-client-upload__copy strong { color: var(--ivory); font-size: 1.2rem; font-weight: 500; }
+.admin-client-upload__copy small { color: var(--muted); font-size: .85rem; }
+.admin-client-upload__formats { direction: ltr; color: #686e87 !important; font: 500 .65rem Manrope, sans-serif; letter-spacing: .11em; }
+.admin-client-drafts { display: grid; gap: .75rem; }
+.admin-client-draft {
+  display: grid;
+  grid-template-columns: 6rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  padding: .85rem;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,.018);
+}
+.admin-client-draft__preview { height: 5rem; display: grid; place-items: center; padding: .65rem; background: #edf4f6; overflow: hidden; }
+.admin-client-draft__preview img { display: block; max-width: 100%; max-height: 100%; object-fit: contain; }
+.admin-client-draft label { min-width: 0; }
+.admin-client-draft label small { direction: ltr; max-width: 100%; color: #6f758e; font: .68rem Manrope, sans-serif; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-client-draft__remove { align-self: stretch; min-width: 4rem; border: 0; border-right: 1px solid var(--line); padding: .75rem; color: #cf8175; background: transparent; cursor: pointer; transition: color .18s ease, background-color .18s ease; }
+.admin-client-draft__remove:hover { color: #f0b3a9; background: rgba(224,139,126,.05); }
+.admin-client-editor__hint { margin: 0; padding: .25rem 0; color: #777d97; font-size: .82rem; line-height: 1.8; }
+.admin-client-editor__count { width: max-content; margin: 0; color: var(--success); font-size: .78rem; }
+.admin-client-editor .admin-form-actions { margin-block-start: .35rem; }
+
 @media (max-width: 1100px) {
   .admin-shell { grid-template-columns: 13.5rem minmax(0, 1fr); }
   .admin-stat-grid { grid-template-columns: 1fr 1fr; }
@@ -290,8 +335,14 @@ svg { width: 1.15rem; height: 1.15rem; fill: none; stroke: currentColor; stroke-
   .admin-table__row { grid-template-columns: 1fr; gap: .6rem; padding: 1.25rem; }
   .admin-table__row .admin-row-actions { justify-content: flex-start; }
   .admin-modal__panel { width: 100%; }
+  .admin-modal__panel--clients { padding-inline: 1rem; }
   .admin-form-grid { grid-template-columns: 1fr; }
   .admin-form-grid .span-2 { grid-column: 1; }
+  .admin-client-upload { min-height: 11rem; grid-template-columns: auto minmax(0, 1fr); }
+  .admin-client-upload__formats { grid-column: 1 / -1; }
+  .admin-client-draft { grid-template-columns: 4.5rem minmax(0, 1fr); }
+  .admin-client-draft__preview { height: 4rem; }
+  .admin-client-draft__remove { grid-column: 2; width: max-content; min-width: 0; border: 0; padding: .25rem 0; }
   .admin-auth { display: flex; align-items: flex-end; width: 100%; padding: 1rem; }
   .admin-auth__panel { width: 100%; min-width: 0; padding: 1.75rem 1.25rem; }
   .admin-auth h1 { font-size: clamp(1.9rem, 9vw, 2.75rem); }

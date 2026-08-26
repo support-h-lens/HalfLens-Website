@@ -21,12 +21,15 @@ export interface ServiceItem {
 
 export interface ProjectItem {
   id: string
+  slug: string
   title: string
   category: string
   client: string
   role: string
   format: string
   year: string
+  seoTitle?: string
+  seoDescription?: string
   palette: 'amber' | 'violet' | 'cyan' | 'crimson' | 'silver'
   image?: string
   youtube?: {

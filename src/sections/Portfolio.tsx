@@ -188,16 +188,13 @@ export function Portfolio({ items = projects }: { items?: ProjectItem[] }) {
 
       <div className="portfolio__projects">
         {items.map((project, index) => {
-          const projectLabel = project.youtube
-            ? `${project.title} — مشاهدة الفيلم على YouTube`
-            : `${project.title} — ${portfolioContent.eyebrow}`
 
           return (
             <article
               ref={(element) => {
                 projectRefs.current[index] = element
               }}
-              className="project"
+              className={`project project--layout-${(index % 4) + 1}`}
               key={project.id}
             >
               <div className="project__layout">
@@ -235,15 +232,23 @@ export function Portfolio({ items = projects }: { items?: ProjectItem[] }) {
                       </>
                     )}
                   </div>
+                  <div className="project__focus-frame" aria-hidden="true">
+                    <span className="project__focus-corner project__focus-corner--one" />
+                    <span className="project__focus-corner project__focus-corner--two" />
+                    <span className="project__focus-corner project__focus-corner--three" />
+                    <span className="project__focus-corner project__focus-corner--four" />
+                    <span className="project__focus-cut" />
+                  </div>
+                  <div className="project__edge-meta" aria-hidden="true">
+                    <span dir="ltr">HL / {project.id}</span>
+                    <span>{project.client}</span>
+                  </div>
                 </div>
 
                 <a
                   className="project__details"
                   data-project={project.id}
-                  href={project.youtube?.url ?? '#contact'}
-                  aria-label={projectLabel}
-                  target={project.youtube ? '_blank' : undefined}
-                  rel={project.youtube ? 'noreferrer' : undefined}
+                  href={`/work/${encodeURIComponent(project.slug)}`}
                 >
                   <div className="project__status" aria-hidden="true" dir="ltr">
                     <span>
@@ -274,7 +279,7 @@ export function Portfolio({ items = projects }: { items?: ProjectItem[] }) {
                   </dl>
 
                   <div className="project__meta">
-                    <span>{project.youtube ? 'شاهد الفيلم' : 'شاهد المشروع'}</span>
+                      <span>شاهد المشروع</span>
                     <span className="project__arrow" aria-hidden="true">
                       <ArrowIcon />
                     </span>
@@ -284,6 +289,15 @@ export function Portfolio({ items = projects }: { items?: ProjectItem[] }) {
             </article>
           )
         })}
+      </div>
+
+      <div className="layout-container portfolio__archive">
+        <a href="/work" className="portfolio__archive-link">
+          <span>استكشف أرشيف الأعمال</span>
+          <span className="portfolio__archive-icon" aria-hidden="true">
+            <ArrowIcon />
+          </span>
+        </a>
       </div>
     </section>
   )

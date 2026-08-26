@@ -1,0 +1,14 @@
+# H-Lens Production
+
+H-Lens is a media-production company in Riyadh. The website is primarily Arabic and presents the company's story, production services, selected work, clients, and contact paths.
+
+## Main pages
+
+- [Homepage](https://h-lens.co/): Company story, services, clients, and contact
+- [Selected work](https://h-lens.co/work): Film, campaign, and event-production portfolio
+
+## Contact
+
+- [Start a project](https://h-lens.co/#contact)
+
+The `/admin` area is private and should not be indexed or treated as public website content.

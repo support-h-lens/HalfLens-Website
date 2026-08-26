@@ -1,4 +1,14 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type DragEvent,
+  type FormEvent,
+  type ReactNode,
+} from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { contactChannels, contactContent } from '../data/siteContent'
 import type { ContactChannel } from '../types/content'
@@ -11,12 +21,15 @@ import {
   listProjects,
   listRedirects,
   listSections,
+  removeClientLogos,
   saveClient,
+  saveClients,
   saveCmsAccess,
   saveProject,
   saveRedirect,
   saveSection,
   setEntityStatus,
+  uploadClientLogo,
 } from './cmsApi'
 import { isSupabaseConfigured, supabase } from './supabase'
 import type {
@@ -182,7 +195,17 @@ function EmptyState({ title, description }: { title: string; description: string
   )
 }
 
-function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+function Modal({
+  title,
+  onClose,
+  children,
+  panelClassName = '',
+}: {
+  title: string
+  onClose: () => void
+  children: ReactNode
+  panelClassName?: string
+}) {
   useEffect(() => {
     const closeOnEscape = (event: KeyboardEvent) => event.key === 'Escape' && onClose()
     window.addEventListener('keydown', closeOnEscape)
@@ -192,7 +215,7 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
   return (
     <div className="admin-modal" role="dialog" aria-modal="true" aria-label={title}>
       <button className="admin-modal__backdrop" type="button" aria-label="إغلاق" onClick={onClose} />
-      <section className="admin-modal__panel">
+      <section className={`admin-modal__panel ${panelClassName}`.trim()}>
         <header>
           <div>
             <p className="admin-kicker"><span /> EDITOR</p>
@@ -295,49 +318,240 @@ function ProjectForm({
   )
 }
 
-function ClientForm({ client, onSave, onClose }: { client: CmsClient | null; onSave: (client: Parameters<typeof saveClient>[0]) => Promise<void>; onClose: () => void }) {
-  const [form, setForm] = useState({
-    client_code: client?.client_code || '',
-    name: client?.name || '',
-    abbreviation: client?.abbreviation || '',
-    logo_url: client?.logo_url || '',
-    sort_order: client?.sort_order?.toString() || '0',
-    status: client?.status || 'draft',
-  })
+interface ClientLogoDraft {
+  id: string
+  name: string
+  file: File | null
+  previewUrl: string
+  existingLogoUrl: string | null
+}
+
+const clientNameFromFile = (fileName: string) =>
+  fileName
+    .replace(/\.[^.]+$/, '')
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+const managedClientLogoPath = (logoUrl: string | null) => {
+  if (!logoUrl) return null
+  const marker = '/storage/v1/object/public/website-media/'
+  const markerIndex = logoUrl.indexOf(marker)
+  if (markerIndex === -1) return null
+  return decodeURIComponent(logoUrl.slice(markerIndex + marker.length))
+}
+
+function ClientForm({
+  client,
+  nextSortOrder,
+  onSave,
+  onClose,
+}: {
+  client: CmsClient | null
+  nextSortOrder: number
+  onSave: (clientItems: Array<Parameters<typeof saveClient>[0]>) => Promise<void>
+  onClose: () => void
+}) {
+  const [drafts, setDrafts] = useState<ClientLogoDraft[]>(() =>
+    client
+      ? [{
+          id: client.id,
+          name: client.name,
+          file: null,
+          previewUrl: client.logo_url || '',
+          existingLogoUrl: client.logo_url,
+        }]
+      : [],
+  )
+  const [dragging, setDragging] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
-  const update = (key: keyof typeof form, value: string) => setForm((current) => ({ ...current, [key]: value }))
+  const previewUrls = useRef(new Set<string>())
+
+  useEffect(() => () => {
+    previewUrls.current.forEach((url) => URL.revokeObjectURL(url))
+    previewUrls.current.clear()
+  }, [])
+
+  const revokePreview = (draft: ClientLogoDraft) => {
+    if (!draft.file || !previewUrls.current.has(draft.previewUrl)) return
+    URL.revokeObjectURL(draft.previewUrl)
+    previewUrls.current.delete(draft.previewUrl)
+  }
+
+  const addFiles = (files: File[]) => {
+    setError('')
+    const supportedFiles = files.filter((file) => {
+      const supportedExtension = /\.(svg|png|jpe?g|webp)$/i.test(file.name)
+      return supportedExtension && file.size <= 5 * 1024 * 1024
+    })
+
+    if (supportedFiles.length !== files.length) {
+      setError('بعض الملفات لم تُضف. استخدم SVG أو PNG أو JPG أو WEBP بحجم لا يتجاوز 5 ميجابايت للشعار.')
+    }
+    if (supportedFiles.length === 0) return
+
+    const incomingDrafts = supportedFiles.map((file) => {
+      const previewUrl = URL.createObjectURL(file)
+      previewUrls.current.add(previewUrl)
+      return {
+        id: crypto.randomUUID(),
+        name: client?.name || clientNameFromFile(file.name),
+        file,
+        previewUrl,
+        existingLogoUrl: client?.logo_url || null,
+      }
+    })
+
+    setDrafts((current) => {
+      if (!client) return [...current, ...incomingDrafts]
+      current.forEach(revokePreview)
+      incomingDrafts.slice(1).forEach(revokePreview)
+      return incomingDrafts.slice(0, 1)
+    })
+  }
+
+  const handleFileInput = (event: ChangeEvent<HTMLInputElement>) => {
+    addFiles(Array.from(event.target.files || []))
+    event.target.value = ''
+  }
+
+  const handleDrop = (event: DragEvent<HTMLLabelElement>) => {
+    event.preventDefault()
+    setDragging(false)
+    addFiles(Array.from(event.dataTransfer.files))
+  }
+
+  const updateDraftName = (id: string, name: string) => {
+    setDrafts((current) => current.map((draft) => draft.id === id ? { ...draft, name } : draft))
+  }
+
+  const removeDraft = (id: string) => {
+    setDrafts((current) => {
+      const removedDraft = current.find((draft) => draft.id === id)
+      if (removedDraft) revokePreview(removedDraft)
+      return current.filter((draft) => draft.id !== id)
+    })
+  }
+
   const submit = async (event: FormEvent) => {
     event.preventDefault()
+    if (drafts.length === 0) {
+      setError('اسحب شعارًا واحدًا على الأقل للمتابعة.')
+      return
+    }
+    if (drafts.some((draft) => !draft.name.trim())) {
+      setError('أضف اسم العميل لكل شعار قبل الحفظ.')
+      return
+    }
+
     setSaving(true)
     setError('')
+    const uploadedPaths: string[] = []
     try {
-      await onSave({
-        ...(client?.id ? { id: client.id } : {}),
-        ...form,
-        logo_url: form.logo_url || null,
-        sort_order: Number(form.sort_order) || 0,
-        status: form.status as PublishStatus,
-      })
+      const clientItems: Array<Parameters<typeof saveClient>[0]> = []
+      for (const [index, draft] of drafts.entries()) {
+        const uploadedLogo = draft.file ? await uploadClientLogo(draft.file) : null
+        if (uploadedLogo) uploadedPaths.push(uploadedLogo.path)
+        const name = draft.name.trim()
+        clientItems.push({
+          ...(client?.id ? { id: client.id } : {}),
+          client_code: client?.client_code || `client-${Date.now().toString(36)}-${index + 1}-${crypto.randomUUID().slice(0, 8)}`,
+          name,
+          abbreviation: name,
+          logo_url: uploadedLogo?.publicUrl || draft.existingLogoUrl,
+          sort_order: client?.sort_order ?? nextSortOrder + index,
+          status: client?.status || 'published',
+        })
+      }
+
+      await onSave(clientItems)
+
+      if (client && uploadedPaths.length > 0) {
+        const previousPath = managedClientLogoPath(client.logo_url)
+        if (previousPath) {
+          try {
+            await removeClientLogos([previousPath])
+          } catch (cleanupError) {
+            console.warn('تعذر حذف ملف الشعار السابق.', cleanupError)
+          }
+        }
+      }
       onClose()
     } catch (submitError) {
+      if (uploadedPaths.length > 0) {
+        try {
+          await removeClientLogos(uploadedPaths)
+        } catch (cleanupError) {
+          console.warn('تعذر تنظيف ملفات الشعارات بعد فشل الحفظ.', cleanupError)
+        }
+      }
       setError(submitError instanceof Error ? submitError.message : 'تعذر حفظ العميل.')
     } finally {
       setSaving(false)
     }
   }
   return (
-    <form className="admin-editor-form" onSubmit={submit}>
-      <div className="admin-form-grid">
-        <label><span>الرمز</span><input dir="ltr" value={form.client_code} onChange={(e) => update('client_code', e.target.value)} required /></label>
-        <label><span>الاختصار</span><input dir="ltr" value={form.abbreviation} onChange={(e) => update('abbreviation', e.target.value)} required /></label>
-        <label className="span-2"><span>اسم العميل</span><input value={form.name} onChange={(e) => update('name', e.target.value)} required /></label>
-        <label className="span-2"><span>مسار أو رابط الشعار</span><input dir="ltr" value={form.logo_url} onChange={(e) => update('logo_url', e.target.value)} placeholder="/media/clients/logo.svg" /></label>
-        <label><span>الترتيب</span><input type="number" value={form.sort_order} onChange={(e) => update('sort_order', e.target.value)} /></label>
-        <label><span>الحالة</span><select value={form.status} onChange={(e) => update('status', e.target.value)}><option value="draft">مسودة</option><option value="published">منشور</option><option value="archived">مؤرشف</option></select></label>
-      </div>
+    <form className="admin-editor-form admin-client-editor" onSubmit={submit}>
+      <label
+        className={`admin-client-upload${dragging ? ' is-dragging' : ''}`}
+        onDragEnter={(event) => { event.preventDefault(); setDragging(true) }}
+        onDragOver={(event) => event.preventDefault()}
+        onDragLeave={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDragging(false)
+        }}
+        onDrop={handleDrop}
+      >
+        <input
+          className="admin-client-upload__input"
+          type="file"
+          accept=".svg,.png,.jpg,.jpeg,.webp,image/svg+xml,image/png,image/jpeg,image/webp"
+          multiple={!client}
+          onChange={handleFileInput}
+        />
+        <span className="admin-client-upload__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 14v5h14v-5" /></svg>
+        </span>
+        <span className="admin-client-upload__copy">
+          <strong>{client ? 'اسحب الشعار الجديد هنا' : 'اسحب شعارات العملاء هنا'}</strong>
+          <small>{client ? 'أو اضغط لاستبدال الشعار الحالي' : 'يمكنك اختيار عدة شعارات دفعة واحدة'}</small>
+        </span>
+        <span className="admin-client-upload__formats">SVG · PNG · JPG · WEBP</span>
+      </label>
+
+      {drafts.length > 0 && (
+        <div className="admin-client-drafts" aria-live="polite">
+          {drafts.map((draft, index) => (
+            <article className="admin-client-draft" key={draft.id}>
+              <div className="admin-client-draft__preview">
+                <img src={draft.previewUrl} alt="" />
+              </div>
+              <label>
+                <span>اسم العميل {drafts.length > 1 ? `${index + 1}` : ''}</span>
+                <input
+                  value={draft.name}
+                  onChange={(event) => updateDraftName(draft.id, event.target.value)}
+                  placeholder="اكتب اسم العميل"
+                  required
+                />
+                {draft.file && <small>{draft.file.name}</small>}
+              </label>
+              <button className="admin-client-draft__remove" type="button" onClick={() => removeDraft(draft.id)}>
+                إزالة
+              </button>
+            </article>
+          ))}
+        </div>
+      )}
+
+      {drafts.length === 0 && (
+        <p className="admin-client-editor__hint">بعد اختيار الشعارات، سيظهر حقل اسم مستقل لكل شعار هنا.</p>
+      )}
+      {drafts.length > 1 && (
+        <p className="admin-client-editor__count">{drafts.length} شعارات جاهزة للحفظ</p>
+      )}
       {error && <Notice tone="error">{error}</Notice>}
-      <footer className="admin-form-actions"><button type="button" className="admin-secondary-button" onClick={onClose}>إلغاء</button><button type="submit" className="admin-primary-button" disabled={saving}>{saving ? 'جارٍ الحفظ…' : 'حفظ العميل'}<ArrowIcon /></button></footer>
+      <footer className="admin-form-actions"><button type="button" className="admin-secondary-button" onClick={onClose}>إلغاء</button><button type="submit" className="admin-primary-button" disabled={saving}>{saving ? 'جارٍ رفع الشعارات…' : drafts.length > 1 ? `حفظ ${drafts.length} عملاء` : 'حفظ العميل'}<ArrowIcon /></button></footer>
     </form>
   )
 }
@@ -699,7 +913,28 @@ function Dashboard({ session, membership, onLogout }: { session: Session; member
       </main>
 
       {editor?.kind === 'project' && <Modal title={editor.item ? 'تحرير المشروع' : 'مشروع جديد'} onClose={() => setEditor(null)}><ProjectForm project={editor.item as CmsProject | null} onClose={() => setEditor(null)} onSave={async (item) => { await saveProject(item); await refresh(); notify('تم حفظ المشروع.') }} /></Modal>}
-      {editor?.kind === 'client' && <Modal title={editor.item ? 'تحرير العميل' : 'عميل جديد'} onClose={() => setEditor(null)}><ClientForm client={editor.item as CmsClient | null} onClose={() => setEditor(null)} onSave={async (item) => { await saveClient(item); await refresh(); notify('تم حفظ العميل.') }} /></Modal>}
+      {editor?.kind === 'client' && (
+        <Modal
+          title={editor.item ? 'تحرير شعار العميل' : 'إضافة شعارات العملاء'}
+          panelClassName="admin-modal__panel--clients"
+          onClose={() => setEditor(null)}
+        >
+          <ClientForm
+            client={editor.item as CmsClient | null}
+            nextSortOrder={Math.max(-1, ...data.clients.map((client) => client.sort_order)) + 1}
+            onClose={() => setEditor(null)}
+            onSave={async (clientItems) => {
+              if (clientItems.length === 1 && clientItems[0].id) {
+                await saveClient(clientItems[0])
+              } else {
+                await saveClients(clientItems)
+              }
+              await refresh()
+              notify(clientItems.length > 1 ? `تم حفظ ${clientItems.length} عملاء.` : 'تم حفظ العميل.')
+            }}
+          />
+        </Modal>
+      )}
       {editor?.kind === 'section' && <Modal title="تحرير بيانات التواصل" onClose={() => setEditor(null)}><ContactSettingsForm section={editor.item as CmsSection | null} onClose={() => setEditor(null)} onSave={async (item) => { await saveSection(item); await refresh(); notify('تم حفظ ونشر بيانات التواصل.') }} /></Modal>}
       {editor?.kind === 'redirect' && <Modal title={editor.item ? 'تحرير التحويل' : 'تحويل جديد'} onClose={() => setEditor(null)}><RedirectForm redirect={editor.item as CmsRedirect | null} onClose={() => setEditor(null)} onSave={async (item) => { await saveRedirect(item); await refresh(); notify('تم حفظ التحويل.') }} /></Modal>}
     </div>

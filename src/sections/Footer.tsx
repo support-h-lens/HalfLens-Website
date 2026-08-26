@@ -1,11 +1,13 @@
 import { BrandLogo } from '../components/BrandLogo'
 import { footerContent, navigation, services, socialLinks } from '../data/siteContent'
 
-export function Footer() {
+export function Footer({ routeMode = false }: { routeMode?: boolean }) {
+  const sectionHref = (id: string) => `${routeMode ? '/' : ''}#${id}`
+
   return (
     <footer className="footer">
       <div className="layout-container footer__top">
-        <a href="#hero" className="footer__brand" aria-label="العودة إلى الرئيسية">
+        <a href={sectionHref('hero')} className="footer__brand" aria-label="العودة إلى الرئيسية">
           <BrandLogo />
         </a>
 
@@ -42,7 +44,7 @@ export function Footer() {
       <div className="layout-container footer__links">
         <nav aria-label="روابط التذييل">
           {navigation.map((item) => (
-            <a key={item.id} href={`#${item.id}`}>
+            <a key={item.id} href={sectionHref(item.id)}>
               {item.label}
             </a>
           ))}

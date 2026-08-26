@@ -55,7 +55,6 @@ export function Hero() {
           href={heroContent.profileHref}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label="فتح الملف التعريفي لشركة H-Lens بصيغة PDF في تبويب جديد"
         >
           <span className="hero__profile-dial" aria-hidden="true">
             <svg className="hero__profile-orbit" viewBox="0 0 140 140">
@@ -82,7 +81,7 @@ export function Hero() {
           </span>
         </a>
 
-        <a className="scroll-cue" href="#story" aria-label="انتقل إلى قصتنا">
+        <a className="scroll-cue" href="#story">
           <strong>مرّر لاكتشاف القصة</strong>
           <span className="scroll-cue__motion" aria-hidden="true">
             <ArrowIcon direction="down" />

@@ -16,11 +16,11 @@ export const navigation: NavigationItem[] = [
 ]
 
 export const heroContent = {
-  eyebrow: 'HALF LENS · RIYADH',
-  titleLineOne: 'نرى الفكرة.',
-  titleLineTwo: 'ونصنع أثرها.',
+  eyebrow: 'HALF LENS · PRODUCTION',
+  titleLineOne: 'عـدسة تحـكي،',
+  titleLineTwo: 'وأثر يبـقى.',
   description:
-    'شريك إبداعي في الإنتاج المرئي، نحوّل الأفكار إلى صور تُرى، وتُسمع، وتبقى.',
+    'شريكك في الإنتاج الفني، من الفكرة إلى آخر فريم.',
   primaryAction: 'شاهد أعمالنا',
   secondaryAction: 'ابدأ مشروعك',
   profileAction: 'استكشف ملفنا',
@@ -111,6 +111,7 @@ export const portfolioContent = {
 export const projects: ProjectItem[] = [
   {
     id: '01',
+    slug: 'effective-parenting-campaign',
     title: 'حملة الوالدية الفاعلة',
     category: 'مجلس شؤون الأسرة · حملة توعوية',
     year: '2026',
@@ -127,6 +128,7 @@ export const projects: ProjectItem[] = [
   },
   {
     id: '02',
+    slug: 'saudi-cup-closing-film',
     title: 'الفيديو الختامي',
     category: 'كأس السعودية · فيلم فعالية',
     year: '2026',
@@ -143,6 +145,7 @@ export const projects: ProjectItem[] = [
   },
   {
     id: '03',
+    slug: 'leap-coverage',
     title: 'اللي حصل في ليب',
     category: 'ليب · تغطية إبداعية',
     year: '2025',
@@ -159,6 +162,7 @@ export const projects: ProjectItem[] = [
   },
   {
     id: '04',
+    slug: 'identity-campaign',
     title: 'حملة تعزيز الهوية',
     category: 'الصندوق الصناعي · حملة مؤسسية',
     year: '2025',
@@ -175,6 +179,7 @@ export const projects: ProjectItem[] = [
   },
   {
     id: '05',
+    slug: 'identity-campaign-chapter-two',
     title: 'تعزيز الهوية — الفصل الثاني',
     category: 'الصندوق الصناعي · فيلم علامة',
     year: '2025',
@@ -280,11 +285,6 @@ export const careerSpecialties = careerDepartments.flatMap((department) =>
     value: `${department.name} — ${role}`,
   })),
 )
-
-export const clientTestimonial = {
-  quote: 'مساحة مخصصة لشهادة عميل معتمدة تصف أثر الشراكة وجودة التجربة من الفكرة حتى التسليم.',
-  attribution: 'CLIENT TESTIMONIAL · PENDING APPROVAL',
-}
 
 export const clients: ClientItem[] = [
   {

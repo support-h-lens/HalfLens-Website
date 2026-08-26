@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { navigation } from '../data/siteContent'
 import type { SectionId } from '../types/content'
 import { ArrowIcon } from './ArrowIcon'
@@ -95,20 +95,33 @@ export function Navigation() {
         </a>
 
         <nav className="site-nav__links" aria-label="التنقل الرئيسي">
-          {navigation.map((item) => (
+          {navigation.map((item, index) => (
             <a
               key={item.id}
               className={activeSection === item.id ? 'is-active' : ''}
               href={`#${item.id}`}
               aria-current={activeSection === item.id ? 'location' : undefined}
             >
-              <span>{item.label}</span>
+              <span className="site-nav__link-number" aria-hidden="true" dir="ltr">
+                {String(index + 1).padStart(2, '0')}
+              </span>
+              <span className="site-nav__label-window">
+                <span className="site-nav__label">{item.label}</span>
+                <span className="site-nav__label site-nav__label--duplicate" aria-hidden="true">
+                  {item.label}
+                </span>
+              </span>
             </a>
           ))}
         </nav>
 
         <a className="button button--nav" href="#contact">
-          <span>ابدأ مشروعك</span>
+          <span className="button--nav__label-window">
+            <span className="button--nav__label">ابدأ مشروعك</span>
+            <span className="button--nav__label button--nav__label--duplicate" aria-hidden="true">
+              ابدأ مشروعك
+            </span>
+          </span>
           <ArrowIcon />
         </a>
 
@@ -151,10 +164,16 @@ export function Navigation() {
               href={`#${item.id}`}
               tabIndex={menuOpen ? 0 : -1}
               className={activeSection === item.id ? 'is-active' : ''}
+              style={{ '--menu-link-index': index } as CSSProperties}
               onClick={navigate}
             >
               <span className="mobile-menu__number">0{index + 1}</span>
-              <span>{item.label}</span>
+              <span className="mobile-menu__label-window">
+                <span className="mobile-menu__label">{item.label}</span>
+                <span className="mobile-menu__label mobile-menu__label--duplicate" aria-hidden="true">
+                  {item.label}
+                </span>
+              </span>
               <ArrowIcon />
             </a>
           ))}

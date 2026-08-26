@@ -20,6 +20,71 @@ const throwIfError = (error: { message: string } | null) => {
   if (error) throw new Error(error.message)
 }
 
+const websiteMediaBucket = 'website-media'
+const clientLogoMimeTypes = new Set([
+  'image/svg+xml',
+  'image/png',
+  'image/jpeg',
+  'image/webp',
+])
+
+const clientLogoExtension = (file: File) => {
+  const extension = file.name.split('.').pop()?.toLowerCase()
+  if (extension && ['svg', 'png', 'jpg', 'jpeg', 'webp'].includes(extension)) {
+    return extension === 'jpeg' ? 'jpg' : extension
+  }
+
+  const mimeExtensions: Record<string, string> = {
+    'image/svg+xml': 'svg',
+    'image/png': 'png',
+    'image/jpeg': 'jpg',
+    'image/webp': 'webp',
+  }
+
+  return mimeExtensions[file.type] || ''
+}
+
+export interface UploadedClientLogo {
+  path: string
+  publicUrl: string
+}
+
+export const uploadClientLogo = async (file: File): Promise<UploadedClientLogo> => {
+  const extension = clientLogoExtension(file)
+  const fallbackContentTypes: Record<string, string> = {
+    svg: 'image/svg+xml',
+    png: 'image/png',
+    jpg: 'image/jpeg',
+    webp: 'image/webp',
+  }
+  const contentType = file.type || fallbackContentTypes[extension] || ''
+  if (!clientLogoMimeTypes.has(contentType) || !extension) {
+    throw new Error('صيغة الشعار غير مدعومة. استخدم SVG أو PNG أو JPG أو WEBP.')
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    throw new Error('حجم الشعار يجب ألا يتجاوز 5 ميجابايت.')
+  }
+
+  const path = `clients/${Date.now()}-${crypto.randomUUID()}.${extension}`
+  const { error } = await supabase.storage
+    .from(websiteMediaBucket)
+    .upload(path, file, {
+      cacheControl: '31536000',
+      contentType,
+      upsert: false,
+    })
+
+  throwIfError(error)
+  const { data } = supabase.storage.from(websiteMediaBucket).getPublicUrl(path)
+  return { path, publicUrl: data.publicUrl }
+}
+
+export const removeClientLogos = async (paths: string[]) => {
+  if (paths.length === 0) return
+  const { error } = await supabase.storage.from(websiteMediaBucket).remove(paths)
+  throwIfError(error)
+}
+
 export const getMembership = async (): Promise<CmsMember | null> => {
   const { data: currentUserId, error: userError } = await supabase
     .rpc('website_cms_current_user_id')
@@ -108,6 +173,14 @@ export const saveClient = async (
     ? supabase.from('website_clients').update(payload).eq('id', client.id)
     : supabase.from('website_clients').insert(payload)
   const { error } = await query
+  throwIfError(error)
+}
+
+export const saveClients = async (
+  clientItems: Array<Partial<CmsClient> & Pick<CmsClient, 'client_code' | 'name' | 'abbreviation'>>,
+) => {
+  if (clientItems.length === 0) return
+  const { error } = await supabase.from('website_clients').insert(clientItems)
   throwIfError(error)
 }
 

@@ -4,12 +4,14 @@ interface YouTubeHoverMediaProps {
   posterUrl: string
   title: string
   videoId: string
+  eager?: boolean
 }
 
 export function YouTubeHoverMedia({
   posterUrl,
   title,
   videoId,
+  eager = false,
 }: YouTubeHoverMediaProps) {
   const playerRef = useRef<HTMLIFrameElement>(null)
   const [isHovered, setIsHovered] = useState(false)
@@ -109,7 +111,7 @@ export function YouTubeHoverMedia({
         className="project-video__poster"
         src={posterSource}
         alt=""
-        loading="lazy"
+        loading={eager ? 'eager' : 'lazy'}
         decoding="async"
         onError={() => {
           const fallbackSource = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`

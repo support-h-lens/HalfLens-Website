@@ -8,6 +8,7 @@ import type { ClientItem, ContactChannel, ProjectItem } from '../types/content'
 
 interface PublicProjectRow {
   project_code: string
+  slug: string
   title: string
   category: string
   client: string
@@ -20,6 +21,8 @@ interface PublicProjectRow {
   youtube_url: string | null
   youtube_poster_url: string | null
   aspect_ratio: number | null
+  seo_title: string | null
+  seo_description: string | null
 }
 
 interface PublicClientRow {
@@ -70,12 +73,15 @@ const mapProject = (row: PublicProjectRow): ProjectItem => {
 
   return {
     id: row.project_code,
+    slug: row.slug,
     title: row.title,
     category: row.category,
     client: row.client,
     role: row.production_role,
     format: row.format || '',
     year: row.project_year?.toString() || '',
+    seoTitle: row.seo_title || undefined,
+    seoDescription: row.seo_description || undefined,
     palette: row.palette,
     image: row.image_url || undefined,
     youtube: youtubeId
@@ -124,7 +130,7 @@ export function usePublicWebsiteContent(): PublicWebsiteContent {
 
     const controller = new AbortController()
     const projectsQuery =
-      'website_projects?select=project_code,title,category,client,production_role,format,project_year,palette,image_url,youtube_id,youtube_url,youtube_poster_url,aspect_ratio&status=eq.published&order=sort_order.asc,created_at.asc'
+      'website_projects?select=project_code,slug,title,category,client,production_role,format,project_year,palette,image_url,youtube_id,youtube_url,youtube_poster_url,aspect_ratio,seo_title,seo_description&status=eq.published&order=sort_order.asc,created_at.asc'
     const clientsQuery =
       'website_clients?select=client_code,name,abbreviation,logo_url&status=eq.published&order=sort_order.asc,created_at.asc'
     const contactQuery =

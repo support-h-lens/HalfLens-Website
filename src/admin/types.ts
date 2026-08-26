@@ -71,13 +71,4 @@ export interface CmsRedirect {
   updated_at: string
 }
 
-export interface CmsAccessUser {
-  user_id: string
-  full_name: string
-  email: string
-  account_status: 'active' | 'inactive'
-  cms_role: CmsRole | null
-  cms_is_active: boolean | null
-}
-
-export type AdminView = 'overview' | 'projects' | 'clients' | 'sections' | 'redirects' | 'access'
+export type AdminView = 'overview' | 'projects' | 'clients' | 'sections' | 'redirects'

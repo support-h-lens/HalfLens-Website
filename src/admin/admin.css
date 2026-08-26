@@ -187,30 +187,6 @@ svg { width: 1.15rem; height: 1.15rem; fill: none; stroke: currentColor; stroke-
 .admin-table__row + .admin-table__row { border-top: 1px solid var(--line); }
 .admin-table code { color: #c7c9d5; font: .76rem/1.6 Manrope, monospace; direction: ltr; text-align: left; overflow-wrap: anywhere; }
 
-.admin-access { margin-block-start: 2rem; }
-.admin-access > header { display: grid; grid-template-columns: 1.1fr .9fr; gap: 4rem; align-items: end; padding: clamp(2rem, 5vw, 5rem); border: 1px solid var(--line); }
-.admin-access > header h2 { margin: 0; font-size: clamp(2.8rem, 6vw, 6rem); font-weight: 400; line-height: 1.15; }
-.admin-access > header > p { max-width: 37rem; color: #a7abbd; line-height: 1.9; }
-.admin-access > header code { color: var(--ivory); font: .82rem Manrope, monospace; }
-.admin-access__roles { display: grid; grid-template-columns: repeat(3, 1fr); border-right: 1px solid var(--line); }
-.admin-access__roles article { min-height: 12rem; padding: 1.5rem; border-left: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-.admin-access__roles article > span { color: var(--record); font: 500 .62rem Manrope, sans-serif; letter-spacing: .13em; }
-.admin-access__roles h3 { margin: 1.6rem 0 .45rem; font-size: 1.4rem; font-weight: 500; }
-.admin-access__roles p { margin: 0; max-width: 22rem; color: #858ba1; font-size: .82rem; line-height: 1.8; }
-.admin-access__list { margin-block-start: 2rem; border: 1px solid var(--line); }
-.admin-access__list > article { min-height: 7rem; display: flex; align-items: center; justify-content: space-between; gap: 2rem; padding: 1.25rem 1.5rem; }
-.admin-access__list > article + article { border-top: 1px solid var(--line); }
-.admin-access__list > article.is-disabled { opacity: .48; }
-.admin-access__identity { display: flex; align-items: center; gap: 1rem; min-width: 0; }
-.admin-access__identity > span { flex: 0 0 auto; width: 3rem; height: 3rem; display: grid; place-items: center; border: 1px solid var(--line-strong); border-radius: 50%; color: var(--ivory); font-size: 1.1rem; }
-.admin-access__identity h3 { margin: 0 0 .2rem; font-size: 1rem; font-weight: 500; }
-.admin-access__identity p { margin: 0; color: #858ba1; font: .72rem Manrope, sans-serif; overflow-wrap: anywhere; }
-.admin-access__controls { display: flex; align-items: end; gap: 1rem; }
-.admin-access__controls label { display: grid; gap: .4rem; }
-.admin-access__controls label > span { color: #858ba1; font-size: .7rem; }
-.admin-access__controls select { min-width: 9rem; min-height: 2.8rem; border: 1px solid var(--line); color: var(--ivory); background: var(--navy-soft); padding-inline: .75rem; }
-.admin-access-toggle { min-width: 7rem; min-height: 2.8rem; grid-template-columns: auto 1fr; align-items: center; padding: .6rem .8rem; border: 1px solid var(--line); }
-.admin-access-toggle input { width: 1rem; height: 1rem; accent-color: var(--success); }
 
 .admin-empty { grid-column: 1 / -1; min-height: 24rem; display: grid; place-content: center; justify-items: center; padding: 3rem; border: 1px solid var(--line); text-align: center; }
 .admin-empty > span { color: #686e87; font: 500 .65rem Manrope, sans-serif; letter-spacing: .15em; }
@@ -324,13 +300,6 @@ svg { width: 1.15rem; height: 1.15rem; fill: none; stroke: currentColor; stroke-
   .admin-contact-settings > footer { align-items: stretch; flex-direction: column; }
   .admin-contact-settings > footer > div { align-items: flex-start; flex-direction: column; }
   .admin-redirects > header { grid-template-columns: 1fr; padding: 2rem 1.2rem; }
-  .admin-access > header { grid-template-columns: 1fr; gap: 1rem; padding: 2rem 1.2rem; }
-  .admin-access__roles { grid-template-columns: 1fr; }
-  .admin-access__roles article { min-height: 0; }
-  .admin-access__list > article { align-items: stretch; flex-direction: column; }
-  .admin-access__controls { align-items: stretch; }
-  .admin-access__controls > label:first-child { flex: 1; }
-  .admin-access__controls select { width: 100%; }
   .admin-table__head { display: none; }
   .admin-table__row { grid-template-columns: 1fr; gap: .6rem; padding: 1.25rem; }
   .admin-table__row .admin-row-actions { justify-content: flex-start; }

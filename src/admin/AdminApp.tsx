@@ -16,7 +16,6 @@ import {
   deleteEntity,
   getMembership,
   importCurrentWebsiteContent,
-  listAccessUsers,
   listClients,
   listProjects,
   listRedirects,
@@ -24,7 +23,6 @@ import {
   removeClientLogos,
   saveClient,
   saveClients,
-  saveCmsAccess,
   saveProject,
   saveRedirect,
   saveSection,
@@ -35,12 +33,10 @@ import { isSupabaseConfigured, supabase } from './supabase'
 import type {
   AdminView,
   CmsClient,
-  CmsAccessUser,
   CmsMember,
   CmsProject,
   CmsRedirect,
   CmsSection,
-  CmsRole,
   PublishStatus,
 } from './types'
 
@@ -50,19 +46,12 @@ const statusLabels: Record<PublishStatus, string> = {
   archived: 'مؤرشف',
 }
 
-const roleLabels = {
-  owner: 'مالك الموقع',
-  editor: 'محرر',
-  viewer: 'قارئ',
-}
-
 const navigation: Array<{ id: AdminView; label: string; index: string }> = [
   { id: 'overview', label: 'نظرة عامة', index: '01' },
   { id: 'projects', label: 'الأعمال', index: '02' },
   { id: 'clients', label: 'العملاء', index: '03' },
   { id: 'sections', label: 'بيانات التواصل', index: '04' },
   { id: 'redirects', label: 'تحويلات SEO', index: '05' },
-  { id: 'access', label: 'صلاحيات الدخول', index: '06' },
 ]
 
 const formatDate = (date: string) =>
@@ -176,10 +165,9 @@ interface AdminData {
   clients: CmsClient[]
   sections: CmsSection[]
   redirects: CmsRedirect[]
-  accessUsers: CmsAccessUser[]
 }
 
-const emptyData: AdminData = { projects: [], clients: [], sections: [], redirects: [], accessUsers: [] }
+const emptyData: AdminData = { projects: [], clients: [], sections: [], redirects: [] }
 
 function StatusBadge({ status }: { status: PublishStatus }) {
   return <span className={`status-badge status-badge--${status}`}>{statusLabels[status]}</span>
@@ -672,29 +660,25 @@ function Dashboard({ session, membership, onLogout }: { session: Session; member
   const [editor, setEditor] = useState<{ kind: 'project' | 'client' | 'section' | 'redirect'; item: CmsProject | CmsClient | CmsSection | CmsRedirect | null } | null>(null)
   const canEdit = membership.cms_role !== 'viewer'
   const canDelete = membership.cms_role === 'owner'
-  const visibleNavigation = useMemo(
-    () => membership.cms_role === 'owner' ? navigation : navigation.filter((item) => item.id !== 'access'),
-    [membership.cms_role],
-  )
+  const visibleNavigation = navigation
 
   const refresh = useCallback(async () => {
     setLoading(true)
     setError('')
     try {
-      const [projectsData, clientsData, sectionsData, redirectsData, accessUsersData] = await Promise.all([
+      const [projectsData, clientsData, sectionsData, redirectsData] = await Promise.all([
         listProjects(),
         listClients(),
         listSections(),
         listRedirects(),
-        membership.cms_role === 'owner' ? listAccessUsers() : Promise.resolve([]),
       ])
-      setData({ projects: projectsData, clients: clientsData, sections: sectionsData, redirects: redirectsData, accessUsers: accessUsersData })
+      setData({ projects: projectsData, clients: clientsData, sections: sectionsData, redirects: redirectsData })
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'تعذر تحميل بيانات لوحة التحكم.')
     } finally {
       setLoading(false)
     }
-  }, [membership.cms_role])
+  }, [])
 
   useEffect(() => { void refresh() }, [refresh])
 
@@ -737,19 +721,6 @@ function Dashboard({ session, membership, onLogout }: { session: Session; member
     }
   }
 
-  const updateAccess = async (user: CmsAccessUser, role: CmsRole, isActive: boolean) => {
-    try {
-      await saveCmsAccess(user.user_id, role, isActive)
-      await refresh()
-      notify('تم تحديث صلاحية الدخول.')
-    } catch (accessError) {
-      const messageText = accessError instanceof Error && accessError.message.includes('website_cms_last_owner')
-        ? 'لا يمكن تعطيل آخر مالك نشط للوحة التحكم.'
-        : accessError instanceof Error ? accessError.message : 'تعذر تحديث الصلاحية.'
-      setError(messageText)
-    }
-  }
-
   const counts = useMemo(() => ({
     projects: data.projects.length,
     clients: data.clients.length,
@@ -785,7 +756,7 @@ function Dashboard({ session, membership, onLogout }: { session: Session; member
         </nav>
         <div className="admin-sidebar__account">
           <span>{session.user.email}</span>
-          <small>{roleLabels[membership.cms_role]}</small>
+          <small>مالك الموقع</small>
           <button type="button" onClick={onLogout}>تسجيل الخروج</button>
         </div>
       </aside>
@@ -817,11 +788,11 @@ function Dashboard({ session, membership, onLogout }: { session: Session; member
                   <article>
                     <p className="admin-kicker"><span /> PUBLISHING FLOW</p>
                     <h2>حرّر بأمان.<br />وانشر بوضوح.</h2>
-                    <p>كل محتوى يبدأ كمسودة، ثم ينتقل للنشر بقرار واضح. لا توجد أي مفاتيح سرية داخل المتصفح، والصلاحيات تُراجع في قاعدة البيانات مع كل طلب.</p>
+                    <p>كل محتوى يبدأ كمسودة، ثم ينتقل للنشر بقرار واضح. لا توجد أي مفاتيح سرية داخل المتصفح، والدخول محصور بحساب المالك الوحيد.</p>
                   </article>
                   <article className="admin-checklist">
                     <h3>جاهزية لوحة التحكم</h3>
-                    <ul><li><span>01</span>مصادقة وحفظ آمن للجلسة</li><li><span>02</span>صلاحيات مالك ومحرر وقارئ</li><li><span>03</span>إدارة مسودات ونشر وأرشفة</li><li><span>04</span>تحويلات SEO جاهزة للترحيل</li></ul>
+                    <ul><li><span>01</span>مصادقة وحفظ آمن للجلسة</li><li><span>02</span>حساب مالك واحد للوحة</li><li><span>03</span>إدارة مسودات ونشر وأرشفة</li><li><span>04</span>تحويلات SEO جاهزة للترحيل</li></ul>
                     {canEdit && counts.projects + counts.clients + counts.sections === 0 && <button type="button" className="admin-primary-button" onClick={importContent}>تهيئة المحتوى الحالي<ArrowIcon /></button>}
                   </article>
                 </div>
@@ -884,30 +855,6 @@ function Dashboard({ session, membership, onLogout }: { session: Session; member
               </section>
             )}
 
-            {view === 'access' && membership.cms_role === 'owner' && (
-              <section className="admin-access">
-                <header>
-                  <div><p className="admin-kicker"><span /> ACCESS CONTROL</p><h2>من يستطيع<br />إدارة الموقع؟</h2></div>
-                  <p>الدخول إلى صفحة <code>/admin</code> لا يكفي. يجب أن يملك الشخص حسابًا نشطًا في منصة H-Lens، ثم تمنحه أنت صلاحية واضحة هنا.</p>
-                </header>
-                <div className="admin-access__roles">
-                  <article><span>OWNER</span><h3>مالك</h3><p>تحرير ونشر وحذف المحتوى، وإدارة صلاحيات المستخدمين.</p></article>
-                  <article><span>EDITOR</span><h3>محرر</h3><p>إنشاء المحتوى وتحريره ونشره، من دون الحذف أو إدارة الوصول.</p></article>
-                  <article><span>VIEWER</span><h3>قارئ</h3><p>معاينة لوحة التحكم والمحتوى فقط، من دون أي تعديل.</p></article>
-                </div>
-                <div className="admin-access__list">
-                  {data.accessUsers.map((user) => (
-                    <article key={user.user_id} className={user.account_status !== 'active' ? 'is-disabled' : ''}>
-                      <div className="admin-access__identity"><span>{user.full_name.slice(0, 1)}</span><div><h3>{user.full_name}</h3><p dir="ltr">{user.email}</p></div></div>
-                      <div className="admin-access__controls">
-                        <label><span>الصلاحية</span><select value={user.cms_role || 'viewer'} onChange={(event) => void updateAccess(user, event.target.value as CmsRole, user.cms_is_active ?? true)} disabled={user.account_status !== 'active'}><option value="owner">مالك</option><option value="editor">محرر</option><option value="viewer">قارئ</option></select></label>
-                        <label className="admin-access-toggle"><input type="checkbox" checked={Boolean(user.cms_is_active)} onChange={(event) => void updateAccess(user, user.cms_role || 'viewer', event.target.checked)} disabled={user.account_status !== 'active'} /><span>{user.cms_is_active ? 'مسموح' : 'غير مسموح'}</span></label>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              </section>
-            )}
           </>
         )}
       </main>

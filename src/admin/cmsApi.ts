@@ -7,8 +7,6 @@ import {
 import { supabase } from './supabase'
 import type {
   CmsClient,
-  CmsAccessUser,
-  CmsRole,
   CmsMember,
   CmsProject,
   CmsRedirect,
@@ -139,19 +137,6 @@ export const listRedirects = async (): Promise<CmsRedirect[]> => {
     .order('source_path', { ascending: true })
   throwIfError(error)
   return (data || []) as CmsRedirect[]
-}
-
-export const listAccessUsers = async (): Promise<CmsAccessUser[]> => {
-  const { data, error } = await supabase.rpc('website_cms_available_users')
-  throwIfError(error)
-  return (data || []) as CmsAccessUser[]
-}
-
-export const saveCmsAccess = async (userId: string, cmsRole: CmsRole, isActive: boolean) => {
-  const { error } = await supabase
-    .from('website_cms_members')
-    .upsert({ user_id: userId, cms_role: cmsRole, is_active: isActive }, { onConflict: 'user_id' })
-  throwIfError(error)
 }
 
 export const saveProject = async (

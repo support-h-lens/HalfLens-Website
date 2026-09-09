@@ -105,6 +105,9 @@ svg { width: 1.15rem; height: 1.15rem; fill: none; stroke: currentColor; stroke-
 .admin-topbar { min-height: 8rem; display: flex; align-items: flex-start; justify-content: space-between; gap: 2rem; padding-block-end: 2rem; border-bottom: 1px solid var(--line); }
 .admin-topbar h1 { margin: 0; font-size: clamp(2rem, 4vw, 4.3rem); font-weight: 400; line-height: 1.15; }
 .admin-topbar__actions { display: flex; gap: .75rem; }
+.admin-publish-button { min-height: 3.15rem; display: inline-flex; align-items: center; gap: .75rem; border: 1px solid rgba(134,197,172,.55); padding: .75rem 1.1rem; color: var(--navy); background: var(--success); cursor: pointer; }
+.admin-publish-button svg { width: 1rem; transform: rotate(180deg); }
+.admin-publish-button:disabled { opacity: .5; cursor: wait; }
 .admin-mobile-nav { display: none; }
 .admin-main > .admin-notice { margin-block: 1rem; }
 .admin-loading { min-height: 52vh; display: grid; place-content: center; justify-items: center; gap: 1rem; color: var(--muted); }
@@ -127,6 +130,16 @@ svg { width: 1.15rem; height: 1.15rem; fill: none; stroke: currentColor; stroke-
 .admin-checklist ul { list-style: none; padding: 0; margin: 0 0 2rem; }
 .admin-checklist li { display: flex; gap: 1rem; padding-block: 1rem; border-top: 1px solid var(--line); color: #bdc0cf; }
 .admin-checklist li span { color: var(--record); font-family: Manrope, sans-serif; font-size: .7rem; }
+.admin-deployment { display: grid; gap: .65rem; margin-block-start: 1.4rem; padding: 1rem; border: 1px solid var(--line); }
+.admin-deployment > div { display: flex; align-items: center; gap: .65rem; }
+.admin-deployment > div > span { width: .55rem; height: .55rem; border-radius: 50%; background: #d3ad77; }
+.admin-deployment--building > div > span { animation: deployment-pulse 1.2s ease-in-out infinite; }
+.admin-deployment--succeeded > div > span { background: var(--success); }
+.admin-deployment--failed > div > span { background: var(--danger); }
+.admin-deployment small, .admin-deployment-empty { color: var(--muted); }
+.admin-deployment p { margin: 0; color: var(--danger); line-height: 1.7; }
+.admin-deployment a { color: var(--success); }
+@keyframes deployment-pulse { 50% { opacity: .25; transform: scale(.75); } }
 
 .admin-collection, .admin-section-list, .admin-redirects { margin-block-start: 2rem; }
 .admin-project-row { display: grid; grid-template-columns: minmax(15rem, 28%) 1fr auto; gap: clamp(1.25rem, 3vw, 3.5rem); align-items: stretch; padding-block: 2rem; border-bottom: 1px solid var(--line); }
@@ -202,6 +215,12 @@ svg { width: 1.15rem; height: 1.15rem; fill: none; stroke: currentColor; stroke-
 .admin-editor-form { padding-block-start: 2rem; }
 .admin-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.3rem; }
 .admin-form-grid .span-2 { grid-column: 1 / -1; }
+.admin-archive-fields { min-width: 0; margin: 0; padding: 0; border: 0; }
+.admin-archive-hint { margin-block: 1.5rem; color: var(--muted); line-height: 1.9; }
+.admin-archive .admin-project-row__content { min-width: 0; overflow-wrap: anywhere; }
+.admin-archive a { color: var(--ivory); text-underline-offset: .25em; }
+.admin-modal__panel { z-index: 1; overscroll-behavior: contain; }
+@media (prefers-reduced-motion: reduce) { .admin-modal__panel { animation: none; } }
 .admin-editor-form textarea { resize: vertical; min-height: 7rem; line-height: 1.6; }
 .admin-editor-form select { min-height: 3.45rem; }
 .admin-code-field { font: .8rem/1.7 Manrope, monospace !important; tab-size: 2; }

@@ -1,6 +1,5 @@
 export type SectionId =
   | 'hero'
-  | 'story'
   | 'services'
   | 'portfolio'
   | 'clients'
@@ -30,6 +29,15 @@ export interface ProjectItem {
   year: string
   seoTitle?: string
   seoDescription?: string
+  seoImage?: string
+  intro?: string
+  challenge?: string
+  roleDetails?: string
+  services?: string[]
+  deliverables?: string[]
+  result?: string
+  transcript?: string
+  updatedAt?: string
   palette: 'amber' | 'violet' | 'cyan' | 'crimson' | 'silver'
   image?: string
   youtube?: {

@@ -5,8 +5,11 @@ import {
   projects,
 } from '../data/siteContent'
 import { supabase } from './supabase'
+import { validateArchiveWork, type ArchiveWorkFields } from '../lib/archiveWorks'
 import type {
+  CmsArchiveWork,
   CmsClient,
+  CmsDeployment,
   CmsMember,
   CmsProject,
   CmsRedirect,
@@ -121,6 +124,23 @@ export const listClients = async (): Promise<CmsClient[]> => {
   return (data || []) as CmsClient[]
 }
 
+export const listArchiveWorks = async (): Promise<CmsArchiveWork[]> => {
+  const { data, error } = await supabase.from('website_archive_works').select('*')
+    .order('sort_order', { ascending: true }).order('created_at', { ascending: true }).order('id', { ascending: true })
+  throwIfError(error)
+  return (data || []) as CmsArchiveWork[]
+}
+
+export const saveArchiveWork = async (work: ArchiveWorkFields & { id?: string }) => {
+  // Explicit allowlist: edits never overwrite status or homepage data.
+  const payload = validateArchiveWork(work)
+  const query = work.id
+    ? supabase.from('website_archive_works').update(payload).eq('id', work.id)
+    : supabase.from('website_archive_works').insert(payload)
+  const { error } = await query
+  throwIfError(error)
+}
+
 export const listSections = async (): Promise<CmsSection[]> => {
   const { data, error } = await supabase
     .from('website_sections')
@@ -137,6 +157,26 @@ export const listRedirects = async (): Promise<CmsRedirect[]> => {
     .order('source_path', { ascending: true })
   throwIfError(error)
   return (data || []) as CmsRedirect[]
+}
+
+export const listDeployments = async (): Promise<CmsDeployment[]> => {
+  const { data, error } = await supabase
+    .from('website_deployments')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(10)
+  if (error && ['42P01', 'PGRST205'].includes((error as { code?: string }).code || '')) return []
+  throwIfError(error)
+  return (data || []) as CmsDeployment[]
+}
+
+export const publishWebsite = async (): Promise<CmsDeployment> => {
+  const { data, error } = await supabase.functions.invoke('publish-website', {
+    body: { ref: 'main' },
+  })
+  throwIfError(error)
+  if (!data?.deployment) throw new Error('لم تُرجع خدمة النشر حالة صالحة.')
+  return data.deployment as CmsDeployment
 }
 
 export const saveProject = async (
@@ -192,7 +232,7 @@ export const saveRedirect = async (
 }
 
 export const setEntityStatus = async (
-  table: 'website_projects' | 'website_clients' | 'website_sections',
+  table: 'website_projects' | 'website_clients' | 'website_sections' | 'website_archive_works',
   id: string,
   status: PublishStatus,
 ) => {
@@ -201,7 +241,7 @@ export const setEntityStatus = async (
 }
 
 export const deleteEntity = async (
-  table: 'website_projects' | 'website_clients' | 'website_sections' | 'website_redirects',
+  table: 'website_projects' | 'website_clients' | 'website_sections' | 'website_redirects' | 'website_archive_works',
   id: string,
 ) => {
   const { error } = await supabase.from(table).delete().eq('id', id)
@@ -211,7 +251,7 @@ export const deleteEntity = async (
 export const importCurrentWebsiteContent = async () => {
   const projectRows = projects.map((project, index) => ({
     project_code: project.id,
-    slug: `project-${project.id}`,
+    slug: project.slug,
     title: project.title,
     category: project.category,
     client: project.client,

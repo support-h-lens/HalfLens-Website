@@ -81,8 +81,8 @@ export function Hero() {
           </span>
         </a>
 
-        <a className="scroll-cue" href="#story">
-          <strong>مرّر لاكتشاف القصة</strong>
+        <a className="scroll-cue" href="#services">
+          <strong>مرّر لمشاهدة العرض</strong>
           <span className="scroll-cue__motion" aria-hidden="true">
             <ArrowIcon direction="down" />
           </span>

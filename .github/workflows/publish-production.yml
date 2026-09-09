@@ -1,0 +1,89 @@
+name: Publish production website
+
+on:
+  repository_dispatch:
+    types: [publish-website]
+  workflow_dispatch:
+    inputs:
+      deployment_id:
+        description: Existing website_deployments id (optional)
+        required: false
+        type: string
+
+concurrency:
+  group: h-lens-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      DEPLOYMENT_ID: ${{ github.event.client_payload.deployment_id || inputs.deployment_id }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      VITE_JOB_APPLICATIONS_API_URL: ${{ vars.JOB_APPLICATIONS_API_URL }}
+      H_LENS_CMS_REQUIRED: "true"
+      H_LENS_STRICT_MIGRATION: "true"
+      WORKFLOW_RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+    steps:
+      - name: Check out approved revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.client_payload.ref || github.event.repository.default_branch }}
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Mark deployment as building
+        env:
+          DEPLOYMENT_STATUS: building
+        run: node scripts/update-deployment-status.mjs
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Build and verify static release
+        run: npm run verify
+
+      - name: Configure Hostinger SSH
+        env:
+          HOSTINGER_SSH_PRIVATE_KEY: ${{ secrets.HOSTINGER_SSH_PRIVATE_KEY }}
+          HOSTINGER_KNOWN_HOSTS: ${{ secrets.HOSTINGER_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$HOSTINGER_SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$HOSTINGER_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Activate an atomic Hostinger release
+        env:
+          HOSTINGER_SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
+          HOSTINGER_SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT }}
+          HOSTINGER_SSH_USER: ${{ secrets.HOSTINGER_SSH_USER }}
+          HOSTINGER_PRODUCTION_LINK: ${{ secrets.HOSTINGER_PRODUCTION_LINK }}
+          HOSTINGER_RELEASES_DIR: ${{ secrets.HOSTINGER_RELEASES_DIR }}
+        run: bash scripts/deploy-hostinger.sh
+
+      - name: Mark deployment as succeeded
+        if: success()
+        env:
+          DEPLOYMENT_STATUS: succeeded
+        run: node scripts/update-deployment-status.mjs
+
+      - name: Mark deployment as failed
+        if: failure()
+        env:
+          DEPLOYMENT_STATUS: failed
+          DEPLOYMENT_ERROR: Build or deployment failed. Open the workflow log for the failing step.
+        run: node scripts/update-deployment-status.mjs

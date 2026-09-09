@@ -1,4 +1,5 @@
-const INPUT_SETTLE_DELAY_MS = 18
+const SEEK_RECOVERY_DELAY_MS = 120
+const PRESENTATION_GRACE_MS = 32
 
 type FrameDirection = -1 | 0 | 1
 
@@ -10,7 +11,7 @@ type VideoFrameCallbackVideo = HTMLVideoElement & {
 }
 
 interface CinematicFrameDiagnostic {
-  type: 'target' | 'requested' | 'presented' | 'settled'
+  type: 'target' | 'requested' | 'decoded' | 'presented' | 'settled'
   timestamp: number
   desiredFrame: number
   requestedFrame: number | null
@@ -48,19 +49,32 @@ export class CinematicFrameScheduler {
   private desiredFrame: number
   private lastRequestedFrame: number | null = null
   private lastPresentedFrame: number
+  private lastDecodedFrame: number
   private direction: FrameDirection = 0
   private inFlight = false
-  private prioritizeExactTarget = true
   private destroyed = false
-  private requestSequence = 0
   private seeksIssued = 0
   private requestedFramesSkipped = 0
   private lastTargetChangeAt = performance.now()
   private lastSettledFrame: number | null = null
-  private settleTimer = 0
+  private recoveryTimer = 0
+  private requestedAt = 0
+  private presentationTimer = 0
+  private lastPresentationAt = 0
+  private readonly requestTimes = new Map<number, number>()
   private pumpFrame = 0
   private videoFrameCallbackId: number | null = null
-  private fallbackSeekedHandler: (() => void) | null = null
+  private readonly handleSeeked = () => this.completeSeek()
+  private readonly handleCanPlay = () => {
+    this.completeSeek()
+    this.queuePump()
+  }
+  private readonly handleVisibility = () => {
+    if (document.visibilityState !== 'hidden') {
+      this.completeSeek()
+      this.queuePump()
+    }
+  }
 
   constructor({
     video,
@@ -75,11 +89,16 @@ export class CinematicFrameScheduler {
     this.firstFrame = this.timeToFrame(firstTime)
     this.lastFrame = this.timeToFrame(lastTime)
     this.lastPresentedFrame = this.clampFrame(this.timeToFrame(video.currentTime))
+    this.lastDecodedFrame = this.lastPresentedFrame
     this.desiredFrame = this.lastPresentedFrame
+    this.video.addEventListener('seeked', this.handleSeeked)
+    this.video.addEventListener('canplay', this.handleCanPlay)
+    document.addEventListener('visibilitychange', this.handleVisibility)
+    this.watchPresentation()
   }
 
   setProgress(progress: number) {
-    if (this.destroyed) return
+    if (this.destroyed || !Number.isFinite(progress)) return
 
     const normalizedProgress = Math.min(1, Math.max(0, progress))
     const targetTime = this.firstTime + (this.lastTime - this.firstTime) * normalizedProgress
@@ -90,17 +109,12 @@ export class CinematicFrameScheduler {
       return
     }
 
-    this.direction = Math.sign(nextTargetFrame - this.desiredFrame) as FrameDirection
+    const now = performance.now()
+    const frameDelta = nextTargetFrame - this.desiredFrame
+    this.direction = Math.sign(frameDelta) as FrameDirection
     this.desiredFrame = nextTargetFrame
-    this.lastTargetChangeAt = performance.now()
+    this.lastTargetChangeAt = now
     this.lastSettledFrame = null
-    this.prioritizeExactTarget = false
-
-    window.clearTimeout(this.settleTimer)
-    this.settleTimer = window.setTimeout(() => {
-      this.prioritizeExactTarget = true
-      this.queuePump()
-    }, INPUT_SETTLE_DELAY_MS)
 
     this.emitDiagnostic('target')
     this.queuePump()
@@ -108,15 +122,16 @@ export class CinematicFrameScheduler {
 
   destroy() {
     this.destroyed = true
-    window.clearTimeout(this.settleTimer)
+    window.clearTimeout(this.recoveryTimer)
+    window.clearTimeout(this.presentationTimer)
     window.cancelAnimationFrame(this.pumpFrame)
 
     if (this.videoFrameCallbackId !== null) {
       this.video.cancelVideoFrameCallback?.(this.videoFrameCallbackId)
     }
-    if (this.fallbackSeekedHandler) {
-      this.video.removeEventListener('seeked', this.fallbackSeekedHandler)
-    }
+    this.video.removeEventListener('seeked', this.handleSeeked)
+    this.video.removeEventListener('canplay', this.handleCanPlay)
+    document.removeEventListener('visibilitychange', this.handleVisibility)
   }
 
   private queuePump() {
@@ -128,83 +143,105 @@ export class CinematicFrameScheduler {
   }
 
   private pump() {
-    if (this.destroyed || this.inFlight) return
+    if (this.destroyed || this.inFlight || this.video.seeking || this.video.readyState < 2 || this.video.error) return
 
-    if (this.isAtDesiredTarget()) {
+    if (this.lastDecodedFrame === this.desiredFrame) {
       this.reportSettled()
       return
     }
 
-    const distance = this.desiredFrame - this.lastPresentedFrame
-    if (distance === 0) {
-      this.reportSettled()
-      return
-    }
-
-    const nextFrame = this.selectNextFrame(distance)
-    this.issueSeek(nextFrame)
-  }
-
-  private selectNextFrame(distance: number) {
-    const absoluteDistance = Math.abs(distance)
-    if (this.prioritizeExactTarget || absoluteDistance <= 2) return this.desiredFrame
-
-    const direction = Math.sign(distance)
-    if (absoluteDistance <= 8) {
-      return this.lastPresentedFrame + direction * Math.max(2, Math.ceil(absoluteDistance / 2))
-    }
-
-    return this.lastPresentedFrame + direction * Math.max(4, Math.ceil(absoluteDistance * 0.65))
+    // Coalesce input to the newest target, never queue intermediate catch-up frames.
+    // Only one decoder seek is allowed at a time, even during rapid reversals.
+    this.issueSeek(this.desiredFrame)
   }
 
   private issueSeek(frame: number) {
     const requestedFrame = this.clampFrame(frame)
-    const requestedAt = performance.now()
-    const sequence = ++this.requestSequence
-    const callbackSupported = typeof this.video.requestVideoFrameCallback === 'function'
+    this.requestedAt = performance.now()
 
     this.inFlight = true
     this.lastRequestedFrame = requestedFrame
     this.seeksIssued += 1
     this.requestedFramesSkipped += Math.max(
       0,
-      Math.abs(requestedFrame - this.lastPresentedFrame) - 1,
+      Math.abs(requestedFrame - this.lastDecodedFrame) - 1,
     )
+    this.requestTimes.set(requestedFrame, this.requestedAt)
+    if (this.requestTimes.size > 32) this.requestTimes.delete(this.requestTimes.keys().next().value!)
     this.emitDiagnostic('requested')
 
-    const complete = (presentedTime: number, completedAt: number) => {
-      if (this.destroyed || sequence !== this.requestSequence) return
+    if (!this.video.paused) this.video.pause()
+    this.video.currentTime = this.frameToTime(requestedFrame)
+    this.scheduleRecovery()
+  }
 
-      this.inFlight = false
-      this.videoFrameCallbackId = null
-      this.fallbackSeekedHandler = null
-      this.lastPresentedFrame = this.clampFrame(this.timeToFrame(presentedTime))
+  private completeSeek() {
+    if (this.destroyed || this.video.seeking || this.video.readyState < 2) return
+    // currentTime alone is not evidence of decoding: read it only after seeking ends.
+    this.lastDecodedFrame = this.clampFrame(this.timeToFrame(this.video.currentTime))
+    if (this.inFlight) {
+      window.clearTimeout(this.recoveryTimer)
+      this.emitDiagnostic('decoded', { seekLatencyMs: performance.now() - this.requestedAt })
+    }
+    if (typeof this.video.requestVideoFrameCallback !== 'function') {
+      this.lastPresentedFrame = this.lastDecodedFrame
+      this.emitDiagnostic('presented', { seekLatencyMs: performance.now() - this.requestedAt })
+      this.releaseSeek()
+    } else if (this.lastPresentationAt >= this.requestedAt && Math.abs(this.lastPresentedFrame - this.lastDecodedFrame) <= 1) {
+      this.releaseSeek()
+    } else if (!this.presentationTimer) {
+      // Allow the compositor to consume this frame before asking the decoder for
+      // another. Hidden/occluded videos may not deliver rVFC; never wait indefinitely.
+      this.presentationTimer = window.setTimeout(() => this.releaseSeek(), PRESENTATION_GRACE_MS)
+    }
+  }
+
+  private releaseSeek() {
+    window.clearTimeout(this.presentationTimer)
+    this.presentationTimer = 0
+    if (this.destroyed || this.video.seeking) return
+    window.clearTimeout(this.recoveryTimer)
+    this.inFlight = false
+    this.reportSettled()
+    this.queuePump()
+  }
+
+  private watchPresentation() {
+    if (this.destroyed || typeof this.video.requestVideoFrameCallback !== 'function') return
+    this.videoFrameCallbackId = this.video.requestVideoFrameCallback((now, metadata) => {
+      if (this.destroyed) return
+      this.lastPresentedFrame = this.clampFrame(this.timeToFrame(metadata.mediaTime))
+      this.lastPresentationAt = now
+      const requestedAt = this.requestTimes.get(this.lastPresentedFrame)
+        ?? this.requestTimes.get(this.lastPresentedFrame + 1)
       this.emitDiagnostic('presented', {
-        seekLatencyMs: completedAt - requestedAt,
+        seekLatencyMs: requestedAt === undefined ? undefined : now - requestedAt,
       })
       this.reportSettled()
-      this.queuePump()
-    }
-
-    if (callbackSupported) {
-      this.videoFrameCallbackId = this.video.requestVideoFrameCallback?.((now, metadata) => {
-        complete(metadata.mediaTime, now)
-      }) ?? null
-    } else {
-      this.fallbackSeekedHandler = () => {
-        complete(this.video.currentTime, performance.now())
+      if (this.inFlight && !this.video.seeking && Math.abs(this.lastPresentedFrame - (this.lastRequestedFrame ?? -2)) <= 1) {
+        this.lastDecodedFrame = this.clampFrame(this.timeToFrame(this.video.currentTime))
+        window.clearTimeout(this.recoveryTimer)
+        this.releaseSeek()
       }
-      this.video.addEventListener('seeked', this.fallbackSeekedHandler, { once: true })
-    }
+      // Presentation is observed separately from decoding, with a bounded handoff.
+      this.watchPresentation()
+    })
+  }
 
-    this.video.pause()
-    this.video.currentTime = this.frameToTime(requestedFrame)
+  private scheduleRecovery() {
+    window.clearTimeout(this.recoveryTimer)
+    this.recoveryTimer = window.setTimeout(() => {
+      if (this.destroyed || !this.inFlight) return
+      this.completeSeek()
+      // Never interrupt a real network/decode seek, which would repeatedly restart it.
+      if (this.inFlight && !this.video.error) this.scheduleRecovery()
+    }, SEEK_RECOVERY_DELAY_MS)
   }
 
   private reportSettled() {
     if (
-      !this.prioritizeExactTarget
-      || this.inFlight
+      this.inFlight
+      || this.lastDecodedFrame !== this.desiredFrame
       || !this.isAtDesiredTarget()
       || this.lastSettledFrame === this.desiredFrame
     ) return

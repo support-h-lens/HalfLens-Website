@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, type CSSProperties } from 'react'
+import { ArrowIcon } from '../components/ArrowIcon'
 import { productionStages, services, servicesContent } from '../data/siteContent'
 import { gsap, refreshScrollTriggerWhenReady } from '../lib/gsap'
 
@@ -118,8 +119,10 @@ export function Services() {
               .fromTo(item, { autoAlpha: 0, x: direction * travel }, { autoAlpha: 1, x: 0, duration: 0.16 }, 0.04)
               .fromTo(
                 geometry,
-                { autoAlpha: 0, xPercent: direction * 12, scaleX: 0.82 },
-                { autoAlpha: 1, xPercent: 0, scaleX: 1, duration: 0.2 },
+                // The frame and its text share one layout boundary. Sliding or
+                // scaling only the backdrop lets the content escape its sides.
+                { autoAlpha: 0 },
+                { autoAlpha: 1, duration: 0.2 },
                 0.06,
               )
               .fromTo(rail, { scaleX: 0 }, { scaleX: 1, duration: 0.18 }, 0.1)
@@ -133,7 +136,7 @@ export function Services() {
               .to(title, { autoAlpha: 0, yPercent: -42, duration: 0.1 }, 0.8)
               .to([number, meta], { autoAlpha: 0, x: direction * -10, duration: 0.08 }, 0.82)
               .to(rail, { scaleX: 0, duration: 0.1 }, 0.84)
-              .to(geometry, { autoAlpha: 0, xPercent: direction * -5, duration: 0.12 }, 0.84)
+              .to(geometry, { autoAlpha: 0, duration: 0.12 }, 0.84)
               .to(item, { autoAlpha: 0, x: direction * -18, duration: 0.1 }, 0.88)
           })
         },
@@ -176,19 +179,23 @@ export function Services() {
               key={service.id}
               className={`service-item service-item--${service.side}`}
             >
-              <span className="service-item__geometry" aria-hidden="true" />
-              <div className="service-item__chapter">
-                <span className="service-item__rail" aria-hidden="true" />
-                <div className="service-item__header">
-                  <span className="service-item__number" dir="ltr">{service.id}</span>
-                  <span className="service-item__meta" dir="ltr">{service.meta}</span>
-                </div>
-                <div className="service-item__title-mask motion-title-mask"><h3>{service.title}</h3></div>
-                <p className="service-item__copy">{service.description}</p>
-                <div className="service-item__progress" aria-hidden="true" dir="ltr">
-                  <span>{String(index + 1).padStart(2, '0')}</span>
-                  <i style={{ '--service-progress': `${((index + 1) / services.length) * 100}%` } as CSSProperties} />
-                  <span>{String(services.length).padStart(2, '0')}</span>
+              <div className="service-item__frame">
+                <span className="service-item__geometry" aria-hidden="true">
+                  <span className="service-item__rail" />
+                </span>
+                <div className="service-item__chapter">
+                  <div className="service-item__header">
+                    <span className="service-item__number" dir="ltr">{service.id}</span>
+                    <span className="service-item__meta" dir="ltr">{service.meta}</span>
+                  </div>
+                  <div className="service-item__title-mask motion-title-mask"><h3>{service.title}</h3></div>
+                  <p className="service-item__copy">{service.description}</p>
+                  <a className="editorial-link service-item__link" href="/services/"><span>اكتشف خدماتنا</span><ArrowIcon /></a>
+                  <div className="service-item__progress" aria-hidden="true" dir="ltr">
+                    <span>{String(index + 1).padStart(2, '0')}</span>
+                    <i style={{ '--service-progress': `${((index + 1) / services.length) * 100}%` } as CSSProperties} />
+                    <span>{String(services.length).padStart(2, '0')}</span>
+                  </div>
                 </div>
               </div>
             </li>

@@ -24,9 +24,9 @@ function immutableMediaCache(): Plugin {
   }
 }
 
-export default defineConfig({
+export default defineConfig(({ isSsrBuild }) => ({
   plugins: [react(), immutableMediaCache()],
-  build: {
+  build: isSsrBuild ? {} : {
     rollupOptions: {
       input: {
         website: resolve(__dirname, 'index.html'),
@@ -38,4 +38,4 @@ export default defineConfig({
     host: true,
     port: 5173,
   },
-})
+}))

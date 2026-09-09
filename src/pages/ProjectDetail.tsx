@@ -11,8 +11,8 @@ export function ProjectDetail({ project, nextProject }: { project: ProjectItem; 
   usePageSeo({
     title: project.seoTitle || `${project.title} | نصف عدسة`,
     description,
-    path: `/work/${project.slug}`,
-    image: project.youtube?.poster || project.image,
+    path: `/work/${project.slug}/`,
+    image: project.seoImage || project.youtube?.poster || project.image,
   })
 
   return (
@@ -22,7 +22,7 @@ export function ProjectDetail({ project, nextProject }: { project: ProjectItem; 
         <a href="/" aria-label="العودة إلى الصفحة الرئيسية" className="route-header__brand">
           <BrandLogo />
         </a>
-        <a href="/work" className="route-header__action">
+        <a href="/work/" className="route-header__action">
           <span>كل الأعمال</span>
           <ArrowIcon />
         </a>
@@ -56,7 +56,22 @@ export function ProjectDetail({ project, nextProject }: { project: ProjectItem; 
           </dl>
         </section>
 
-        <a className="next-project" href={`/work/${encodeURIComponent(nextProject.slug)}`}>
+        <section className="project-narrative layout-container" aria-label="تفاصيل المشروع">
+          <div className="project-narrative__lead">
+            <p className="brand-kicker" dir="ltr"><i /> PROJECT STORY</p>
+            <h2>{project.intro || `${project.title} مشروع ${project.category} أُنتج لصالح ${project.client}.`}</h2>
+          </div>
+          <div className="project-narrative__details">
+            {project.challenge ? <article><h3>الهدف</h3><p>{project.challenge}</p></article> : null}
+            <article><h3>دور نصف عدسة</h3><p>{project.roleDetails || project.role}</p></article>
+            {project.services?.length ? <article><h3>الخدمات</h3><ul>{project.services.map((service) => <li key={service}>{service}</li>)}</ul></article> : null}
+            {project.deliverables?.length ? <article><h3>المخرجات</h3><ul>{project.deliverables.map((deliverable) => <li key={deliverable}>{deliverable}</li>)}</ul></article> : null}
+            {project.result ? <article><h3>النتيجة</h3><p>{project.result}</p></article> : null}
+            {project.transcript ? <details><summary>النص المكتوب للفيلم</summary><p>{project.transcript}</p></details> : null}
+          </div>
+        </section>
+
+        <a className="next-project" href={`/work/${encodeURIComponent(nextProject.slug)}/`}>
           <span className="next-project__meta">المشروع التالي <span dir="ltr">/ {nextProject.id}</span></span>
           <strong>{nextProject.title}</strong>
           <span className="next-project__action" aria-hidden="true"><ArrowIcon /></span>

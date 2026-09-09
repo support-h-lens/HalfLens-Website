@@ -13,7 +13,9 @@ interface CinematicMediaStageProps {
   status?: string
   videoSrc?: string
   preload?: 'none' | 'auto'
+  active?: boolean
   posterSrc?: string
+  portraitPosterSrc?: string
   initialTime?: number
   onVideoReady?: (state: CinematicVideoReadyState) => void
 }
@@ -28,7 +30,9 @@ export const CinematicMediaStage = forwardRef<
     status = 'SCROLL FILM · FRAME CONTROL',
     videoSrc,
     preload = 'none',
+    active = true,
     posterSrc,
+    portraitPosterSrc,
     initialTime,
     onVideoReady,
   },
@@ -65,7 +69,7 @@ export const CinematicMediaStage = forwardRef<
   return (
     <div
       className={`cinematic-media-stage${videoSrc || posterSrc ? ' cinematic-media-stage--video' : ''}${
-        isVideoReady ? ' is-video-ready' : ''
+        isVideoReady && active ? ' is-video-ready' : ''
       }${posterSrc ? ' has-video-poster' : ''} ${className}`.trim()}
       role="img"
       aria-label={label}
@@ -80,12 +84,18 @@ export const CinematicMediaStage = forwardRef<
         <span className="cinematic-media-stage__record-light" />
       </div>
 
+      {posterSrc ? (
+        <picture className="cinematic-media-stage__poster" aria-hidden="true">
+          {portraitPosterSrc ? <source media="(orientation: portrait)" srcSet={portraitPosterSrc} /> : null}
+          <img src={posterSrc} alt="" fetchPriority="high" />
+        </picture>
+      ) : null}
+
       {videoSrc || posterSrc ? (
         <video
           ref={videoRef}
           className="cinematic-media-stage__video"
           src={videoSrc}
-          poster={posterSrc}
           muted
           playsInline
           preload={preload}

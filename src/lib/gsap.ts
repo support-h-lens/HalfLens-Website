@@ -5,13 +5,25 @@ gsap.registerPlugin(ScrollTrigger)
 
 export { gsap, ScrollTrigger }
 
+// Every animated section subscribes to load/fonts. Batch their requests so one
+// readiness event doesn't cause a full-page layout refresh for each section.
+let readyRefreshFrame = 0
+const readyRefreshRequests = new Set<symbol>()
+
 export function refreshScrollTriggerWhenReady() {
   let active = true
-  let frame = 0
+  const request = Symbol('ready-refresh')
 
   const refresh = () => {
     if (!active) return
-    frame = window.requestAnimationFrame(() => ScrollTrigger.refresh())
+    readyRefreshRequests.add(request)
+    if (readyRefreshFrame) return
+    readyRefreshFrame = window.requestAnimationFrame(() => {
+      readyRefreshFrame = 0
+      if (!readyRefreshRequests.size) return
+      readyRefreshRequests.clear()
+      ScrollTrigger.refresh()
+    })
   }
 
   if (document.readyState === 'complete') refresh()
@@ -21,7 +33,11 @@ export function refreshScrollTriggerWhenReady() {
 
   return () => {
     active = false
-    window.cancelAnimationFrame(frame)
+    readyRefreshRequests.delete(request)
+    if (!readyRefreshRequests.size) {
+      window.cancelAnimationFrame(readyRefreshFrame)
+      readyRefreshFrame = 0
+    }
     window.removeEventListener('load', refresh)
   }
 }

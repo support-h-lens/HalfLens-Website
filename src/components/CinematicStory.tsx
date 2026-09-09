@@ -4,12 +4,12 @@ import { useCinematicVideoLoader } from '../hooks/useCinematicVideoLoader'
 import { CinematicFrameScheduler } from '../lib/cinematicFrameScheduler'
 import { gsap, refreshScrollTriggerWhenReady, ScrollTrigger } from '../lib/gsap'
 import { Hero } from '../sections/Hero'
-import { OurStory } from '../sections/OurStory'
 import { Services } from '../sections/Services'
 import { CinematicMediaStage } from './CinematicMediaStage'
 
 export function CinematicStory() {
   const storyRef = useRef<HTMLDivElement>(null)
+  const chaptersRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const [readyVideo, setReadyVideo] = useState<{
     currentSrc: string
@@ -24,9 +24,48 @@ export function CinematicStory() {
 
   useLayoutEffect(() => {
     const story = storyRef.current
+    const chapters = chaptersRef.current
+    if (!story || !chapters) return
+    const media = gsap.matchMedia()
+    const context = gsap.context(() => {
+      media.add('(prefers-reduced-motion: no-preference)', () => {
+        const hero = story.querySelector<HTMLElement>('.hero')
+        if (!hero) return
+        gsap.to(hero, {
+          y: () => hero.offsetHeight * .62, ease: 'none',
+          scrollTrigger: { trigger: story, start: 'top top', end: () => `+=${hero.offsetHeight}`, scrub: true, invalidateOnRefresh: true },
+        })
+        gsap.to(hero.querySelector('.hero__layout'), {
+          opacity: 0, ease: 'none',
+          scrollTrigger: { trigger: story, start: () => `top -=${hero.offsetHeight * .35}`, end: () => `top -=${hero.offsetHeight * .9}`, scrub: true, invalidateOnRefresh: true },
+        })
+        // Clear the service labels before the film reaches its ending. The
+        // existing service animations remain untouched inside this wrapper.
+        // Reverse scrolling restores the labels; reduced motion skips the fade.
+        const serviceLayout = chapters.querySelector<HTMLElement>('.services__layout')
+        if (serviceLayout) {
+          gsap.fromTo(serviceLayout, { opacity: 1 }, {
+            opacity: 0, ease: 'none',
+            scrollTrigger: {
+              trigger: chapters,
+              start: () => `bottom bottom+=${Math.min(260, Math.max(140, window.innerHeight * .24))}`,
+              end: 'bottom bottom', scrub: true, invalidateOnRefresh: true,
+            },
+          })
+        }
+      })
+    }, story)
+    const cancelRefresh = refreshScrollTriggerWhenReady()
+    return () => { cancelRefresh(); media.revert(); context.revert() }
+  }, [])
+
+  useLayoutEffect(() => {
+    const story = storyRef.current
+    const chapters = chaptersRef.current
     const video = videoRef.current
     if (
       !story
+      || !chapters
       || !video
       || !readyVideo
       || readyVideo.source !== videoSource.src
@@ -65,7 +104,9 @@ export function CinematicStory() {
             lastTime: lastFrame,
           })
           const scrollTrigger = ScrollTrigger.create({
-            trigger: story,
+            // Finish the film before the following sheet starts covering it.
+            // The sticky stage's final-frame hold is outside this timeline.
+            trigger: chapters,
             start: 'top top',
             end: 'bottom bottom',
             scrub: true,
@@ -97,21 +138,24 @@ export function CinematicStory() {
     <div ref={storyRef} className="cinematic-story">
       <div className="cinematic-story__sticky" aria-hidden="true">
         <CinematicMediaStage
+          key={videoSource.assetSrc}
           ref={videoRef}
           className="cinematic-media-stage--fullscreen"
           videoSrc={videoSource.src}
           preload={videoSource.preload}
+          active={videoSource.isActive}
           posterSrc={cinematicFilm.poster}
+          portraitPosterSrc={cinematicFilm.mobilePoster}
           initialTime={cinematicFilm.initialTime}
           onVideoReady={setReadyVideo}
         />
       </div>
 
-      <div className="cinematic-story__chapters">
+      <div ref={chaptersRef} className="cinematic-story__chapters">
         <Hero />
-        <OurStory />
         <Services />
       </div>
+      <div className="cinematic-story__tail" aria-hidden="true" />
     </div>
   )
 }

@@ -1,3 +1,5 @@
+import type { PublicArchiveWorkRow } from '../lib/archiveWorks'
+
 export type CmsRole = 'owner' | 'editor' | 'viewer'
 export type PublishStatus = 'draft' | 'published' | 'archived'
 
@@ -30,6 +32,14 @@ export interface CmsProject {
   status: PublishStatus
   seo_title: string | null
   seo_description: string | null
+  seo_image: string | null
+  intro: string | null
+  challenge: string | null
+  role_details: string | null
+  services: string[]
+  deliverables: string[]
+  result: string | null
+  transcript: string | null
   created_at: string
   updated_at: string
   published_at: string | null
@@ -71,4 +81,26 @@ export interface CmsRedirect {
   updated_at: string
 }
 
-export type AdminView = 'overview' | 'projects' | 'clients' | 'sections' | 'redirects'
+export type DeploymentStatus = 'queued' | 'building' | 'succeeded' | 'failed'
+
+export interface CmsDeployment {
+  id: string
+  requested_by: string
+  status: DeploymentStatus
+  git_ref: string
+  workflow_run_url: string | null
+  error_message: string | null
+  created_at: string
+  started_at: string | null
+  completed_at: string | null
+}
+
+export interface CmsArchiveWork extends PublicArchiveWorkRow {
+  sort_order: number
+  status: PublishStatus
+  created_at: string
+  updated_at: string
+  published_at: string | null
+}
+
+export type AdminView = 'overview' | 'projects' | 'archive' | 'clients' | 'sections' | 'redirects'

@@ -1,20 +1,35 @@
 import { CinematicStory } from './components/CinematicStory'
+import { ControlledScroll } from './components/ControlledScroll'
 import { Navigation } from './components/Navigation'
 import { PortfolioRise } from './components/PortfolioRise'
 import { SectionWindow } from './components/SectionWindow'
+import type { PublicWebsiteContent } from './lib/cmsContent'
+import { usePublicWebsiteContent } from './lib/publicCms'
+import { usePageSeo } from './lib/seo'
+import {
+  AboutPage,
+  CareersPage,
+  ContactPage,
+  ServicesPage,
+} from './pages/CompanyPages'
+import { NotFound } from './pages/NotFound'
+import { Gone } from './pages/Gone'
+import { ProjectDetail } from './pages/ProjectDetail'
+import { WorkArchive } from './pages/WorkArchive'
 import { Clients } from './sections/Clients'
 import { Contact } from './sections/Contact'
 import { Footer } from './sections/Footer'
-import { usePublicWebsiteContent } from './lib/publicCms'
-import { usePageSeo } from './lib/seo'
-import { WorkArchive } from './pages/WorkArchive'
-import { ProjectDetail } from './pages/ProjectDetail'
-import { NotFound } from './pages/NotFound'
 
-function HomePage({ cmsContent }: { cmsContent: ReturnType<typeof usePublicWebsiteContent> }) {
+function normalizePath(pathname: string) {
+  if (!pathname || pathname === '/') return '/'
+  return `/${pathname.split('/').filter(Boolean).join('/')}/`
+}
+
+function HomePage({ cmsContent }: { cmsContent: PublicWebsiteContent }) {
   usePageSeo({
     title: 'نصف عدسة للإنتاج | H-Lens Production',
     description: 'شريكك في الإنتاج الفني من الرياض؛ نصنع الأفلام والحملات والتغطيات من الفكرة إلى آخر فريم.',
+    path: '/',
   })
 
   return (
@@ -36,15 +51,25 @@ function HomePage({ cmsContent }: { cmsContent: ReturnType<typeof usePublicWebsi
   )
 }
 
-function App() {
-  const cmsContent = usePublicWebsiteContent()
-  const path = window.location.pathname.replace(/\/+$/, '') || '/'
+interface AppProps {
+  initialContent?: PublicWebsiteContent
+  pathname?: string
+}
+
+function WebsiteRoutes({ initialContent, pathname }: AppProps) {
+  const cmsContent = usePublicWebsiteContent(initialContent)
+  const path = normalizePath(pathname || window.location.pathname)
 
   if (path === '/') return <HomePage cmsContent={cmsContent} />
-  if (path === '/work') return <WorkArchive projects={cmsContent.projects} />
+  if (path === '/work/') return <WorkArchive projects={cmsContent.archiveWorks} />
+  if (path === '/about/') return <AboutPage />
+  if (path === '/services/') return <ServicesPage />
+  if (path === '/contact/') return <ContactPage content={cmsContent} />
+  if (path === '/careers/') return <CareersPage content={cmsContent} />
+  if (path === '/_gone_/') return <Gone />
 
   if (path.startsWith('/work/')) {
-    const slug = decodeURIComponent(path.slice('/work/'.length))
+    const slug = decodeURIComponent(path.slice('/work/'.length, -1))
     const projectIndex = cmsContent.projects.findIndex((project) => project.slug === slug)
     if (projectIndex >= 0) {
       const nextProject = cmsContent.projects[(projectIndex + 1) % cmsContent.projects.length]
@@ -52,7 +77,9 @@ function App() {
     }
   }
 
-  return <NotFound />
+  return <NotFound path={path} />
 }
 
-export default App
+export default function App(props: AppProps) {
+  return <><ControlledScroll /><WebsiteRoutes {...props} /></>
+}

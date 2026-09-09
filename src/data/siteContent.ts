@@ -8,7 +8,6 @@ import type {
 
 export const navigation: NavigationItem[] = [
   { id: 'hero', label: 'الرئيسية' },
-  { id: 'story', label: 'قصتنا' },
   { id: 'services', label: 'خدماتنا' },
   { id: 'portfolio', label: 'أعمالنا' },
   { id: 'clients', label: 'عملاؤنا' },

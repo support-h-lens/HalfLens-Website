@@ -1,11 +1,12 @@
 const cinematicMediaBase = import.meta.env.DEV
   ? '/media'
-  : 'https://pub-f57e293f7dcb4b648176c6e821dec885.r2.dev'
+  : 'https://pub-046fd1c457744b10afc99fdd2c5ab3d1.r2.dev'
 
 export const cinematicFilm = {
-  src: `${cinematicMediaBase}/h-lens-camera-scroll.2dca78fcb8a1.mp4`,
-  mobileSrc: `${cinematicMediaBase}/h-lens-camera-scroll.d910c0e374dc.mp4`,
-  poster: '/media/h-lens-camera-poster.60f5cbbaa591.webp',
+  src: `${cinematicMediaBase}/h-lens-hero-landscape.b7c04877f910.mp4`,
+  mobileSrc: `${cinematicMediaBase}/h-lens-hero-portrait.e971de5ef297.mp4`,
+  poster: '/media/h-lens-hero-landscape-poster.1ee743755595.webp',
+  mobilePoster: '/media/h-lens-hero-portrait-poster.930b0d69b4f6.webp',
   frameRate: 48,
   initialTime: 2 / 48,
 } as const

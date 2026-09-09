@@ -115,6 +115,7 @@ export function Clients({ items = clients }: { items?: ClientItem[] }) {
     <section ref={sectionRef} id="clients" className="clients light-section" aria-labelledby="clients-title">
       <div className="layout-container clients__heading">
         <SectionHeading
+          id="clients-title"
           eyebrow={clientsContent.eyebrow}
           title={clientsContent.title}
           description={clientsContent.description}

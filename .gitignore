@@ -5,3 +5,6 @@ artifacts
 *.local
 *.log
 *.tsbuildinfo
+.ssg
+.dev.vars
+supabase/.temp

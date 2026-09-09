@@ -1,14 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 
 type VideoPreload = 'none' | 'auto'
 
 interface CinematicVideoLoaderOptions {
   desktopSrc: string
   mobileSrc: string
-  mobileMaxWidth?: number
 }
 
 interface CinematicVideoSource {
+  selection: object | null
+  assetSrc: string
   src: string | undefined
   preload: VideoPreload
   isLocal: boolean
@@ -32,12 +33,23 @@ type WindowWithIdleCallback = Window & {
 }
 
 const initialSource: CinematicVideoSource = {
+  selection: null,
+  assetSrc: '',
   src: undefined,
   preload: 'none',
   isLocal: false,
 }
 
 const cinematicCacheName = 'h-lens-cinematic-v1'
+
+const portraitMediaQuery = '(orientation: portrait)'
+const getIsPortrait = () => window.matchMedia(portraitMediaQuery).matches
+const getServerIsPortrait = () => false
+function subscribeToOrientation(onChange: () => void) {
+  const query = window.matchMedia(portraitMediaQuery)
+  query.addEventListener('change', onChange)
+  return () => query.removeEventListener('change', onChange)
+}
 
 function markOnce(name: string) {
   if (!performance.getEntriesByName(name).length) performance.mark(name)
@@ -46,13 +58,18 @@ function markOnce(name: string) {
 export function useCinematicVideoLoader({
   desktopSrc,
   mobileSrc,
-  mobileMaxWidth = 1024,
 }: CinematicVideoLoaderOptions) {
   const [source, setSource] = useState<CinematicVideoSource>(initialSource)
+  const [isActive, setIsActive] = useState(false)
+  const hasScrollIntent = useRef(false)
+  const isPortrait = useSyncExternalStore(subscribeToOrientation, getIsPortrait, getServerIsPortrait)
+  const selectedSrc = isPortrait ? mobileSrc : desktopSrc
+  // Each switch gets a new identity, even a quick portrait-landscape-portrait turn.
+  const selection = useMemo(() => ({ src: selectedSrc }), [selectedSrc])
 
   useEffect(() => {
     let disposed = false
-    let phase: 'waiting' | 'fetching' | 'local' | 'remote' = 'waiting'
+    let phase: 'waiting' | 'fetching' | 'prepared' | 'local' | 'remote' = 'waiting'
     let remoteRequested = false
     let objectUrl: string | undefined
     let idleHandle: number | undefined
@@ -60,6 +77,7 @@ export function useCinematicVideoLoader({
     let secondPaintFrame: number | undefined
     let postPaintTimer: number | undefined
     let fallbackTimer: number | undefined
+    let intentFallbackTimer: number | undefined
     let abortController: AbortController | undefined
 
     const idleWindow = window as WindowWithIdleCallback
@@ -67,27 +85,41 @@ export function useCinematicVideoLoader({
     const constrainedConnection = Boolean(
       connection?.saveData || /^(slow-)?2g$/.test(connection?.effectiveType ?? ''),
     )
-    const selectedSrc = window.matchMedia(`(max-width: ${mobileMaxWidth}px)`).matches
-      ? mobileSrc
-      : desktopSrc
+    const selectedUrl = new URL(selectedSrc, window.location.href)
+    const canUseFetchCache = selectedUrl.origin === window.location.origin
 
-    const showRemoteSource = () => {
+    const showPreparedOrRemoteSource = () => {
       if (disposed || phase === 'local' || phase === 'remote') return
+      if (phase === 'prepared' && objectUrl) {
+        phase = 'local'
+        setSource({ selection, assetSrc: selectedSrc, src: objectUrl, preload: 'auto', isLocal: true })
+        return
+      }
       phase = 'remote'
       markOnce('cinematic-preload-fallback')
-      setSource({ src: selectedSrc, preload: 'auto', isLocal: false })
+      setSource({ selection, assetSrc: selectedSrc, src: selectedSrc, preload: 'auto', isLocal: false })
     }
 
     const requestRemoteSource = () => {
+      hasScrollIntent.current = true
+      setIsActive(true)
       if (phase === 'local' || phase === 'remote') return
       remoteRequested = true
 
       if (phase === 'fetching') {
-        abortController?.abort()
+        // Give an almost-complete download a short chance to become a local blob.
+        // Repeated scroll/key events must not restart this deadline.
+        if (intentFallbackTimer === undefined) {
+          intentFallbackTimer = window.setTimeout(() => {
+            if (disposed || phase !== 'fetching') return
+            abortController?.abort()
+            showPreparedOrRemoteSource()
+          }, 200)
+        }
         return
       }
 
-      showRemoteSource()
+      showPreparedOrRemoteSource()
     }
 
     const fetchCompleteAsset = async () => {
@@ -103,22 +135,23 @@ export function useCinematicVideoLoader({
           try {
             mediaCache = await window.caches.open(cinematicCacheName)
             const cachedResponse = await mediaCache.match(selectedSrc)
-            const selectedUrl = new URL(selectedSrc, window.location.href).href
+            // Keep both current orientations warm; remove only older versions.
+            const currentUrls = [desktopSrc, mobileSrc].map((src) => new URL(src, window.location.href).href)
             const cachedRequests = await mediaCache.keys()
             await Promise.all(
               cachedRequests
-                .filter((request) => request.url !== selectedUrl)
+                .filter((request) => !currentUrls.includes(request.url))
                 .map((request) => mediaCache?.delete(request)),
             )
             if (cachedResponse) {
               const cachedBlob = await cachedResponse.blob()
-              if (disposed) return
+              if (disposed || phase !== 'fetching') return
 
               objectUrl = URL.createObjectURL(cachedBlob)
-              phase = 'local'
+              phase = 'prepared'
               markOnce('cinematic-preload-cache-hit')
               markOnce('cinematic-preload-complete')
-              setSource({ src: objectUrl, preload: 'auto', isLocal: true })
+              if (remoteRequested) showPreparedOrRemoteSource()
               return
             }
           } catch {
@@ -128,7 +161,7 @@ export function useCinematicVideoLoader({
 
         if (remoteRequested) {
           phase = 'waiting'
-          showRemoteSource()
+          showPreparedOrRemoteSource()
           return
         }
 
@@ -145,27 +178,37 @@ export function useCinematicVideoLoader({
           : Promise.resolve()
         const [videoBlob] = await Promise.all([response.blob(), cacheWrite])
         if (disposed) return
-        if (remoteRequested) {
-          showRemoteSource()
-          return
-        }
+        if (phase !== 'fetching') return
 
         objectUrl = URL.createObjectURL(videoBlob)
-        phase = 'local'
+        phase = 'prepared'
         markOnce('cinematic-preload-complete')
-        setSource({ src: objectUrl, preload: 'auto', isLocal: true })
+        if (remoteRequested) showPreparedOrRemoteSource()
       } catch (error) {
         if (disposed) return
 
         if (remoteRequested || !(error instanceof DOMException && error.name === 'AbortError')) {
-          phase = 'waiting'
-          showRemoteSource()
+          showPreparedOrRemoteSource()
         }
       }
     }
 
     const scheduleFullPreload = () => {
-      if (disposed || constrainedConnection || remoteRequested || phase !== 'waiting') return
+      if (
+        disposed
+        || constrainedConnection
+        || remoteRequested
+        || phase !== 'waiting'
+      ) return
+
+      if (!canUseFetchCache) {
+        // Native media loading can progressively buffer a public cross-origin MP4
+        // without CORS. Warm the actual video before the first scroll; don't wait
+        // for a full JS fetch, create an opaque blob, or download a second copy.
+        markOnce('cinematic-preload-native')
+        showPreparedOrRemoteSource()
+        return
+      }
 
       const idleDelay = connection?.effectiveType === '3g' ? 1800 : 600
       if (idleWindow.requestIdleCallback) {
@@ -196,9 +239,9 @@ export function useCinematicVideoLoader({
     window.addEventListener('scroll', handleScrollIntent, { passive: true, once: true })
     window.addEventListener('keydown', handleKeyIntent)
 
-    if (window.scrollY > 24) {
+    if (hasScrollIntent.current || window.scrollY > 24) {
       requestRemoteSource()
-    } else if (document.readyState === 'complete') {
+    } else if (!canUseFetchCache || document.readyState === 'complete') {
       scheduleAfterFirstScreen()
     } else {
       window.addEventListener('load', handleLoad, { once: true })
@@ -217,9 +260,16 @@ export function useCinematicVideoLoader({
       if (secondPaintFrame !== undefined) window.cancelAnimationFrame(secondPaintFrame)
       if (postPaintTimer !== undefined) window.clearTimeout(postPaintTimer)
       if (fallbackTimer !== undefined) window.clearTimeout(fallbackTimer)
+      if (intentFallbackTimer !== undefined) window.clearTimeout(intentFallbackTimer)
       if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
-  }, [desktopSrc, mobileMaxWidth, mobileSrc])
+  }, [desktopSrc, mobileSrc, selectedSrc, selection])
 
-  return source
+  // Never render an old blob URL after orientation cleanup has revoked it.
+  return {
+    ...(source.selection === selection ? source : initialSource),
+    assetSrc: selectedSrc,
+    isPortrait,
+    isActive,
+  }
 }

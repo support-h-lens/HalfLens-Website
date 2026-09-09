@@ -371,12 +371,18 @@ function CareerSpecialtySelect({
   )
 }
 
-export function Contact({ channels = contactChannels }: { channels?: ContactChannel[] }) {
+export function Contact({
+  channels = contactChannels,
+  initialPath = 'client',
+}: {
+  channels?: ContactChannel[]
+  initialPath?: ContactPath
+}) {
   const projectTypeTriggerRef = useRef<HTMLButtonElement>(null)
   const careerSpecialtyTriggerRef = useRef<HTMLButtonElement>(null)
   const clientTabRef = useRef<HTMLButtonElement>(null)
   const careerTabRef = useRef<HTMLButtonElement>(null)
-  const [activePath, setActivePath] = useState<ContactPath>('client')
+  const [activePath, setActivePath] = useState<ContactPath>(initialPath)
   const [projectType, setProjectType] = useState('')
   const [projectTypeInvalid, setProjectTypeInvalid] = useState(false)
   const [careerSpecialty, setCareerSpecialty] = useState('')

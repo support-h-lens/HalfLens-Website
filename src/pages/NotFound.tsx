@@ -2,11 +2,11 @@ import { ArrowIcon } from '../components/ArrowIcon'
 import { BrandLogo } from '../components/BrandLogo'
 import { usePageSeo } from '../lib/seo'
 
-export function NotFound() {
+export function NotFound({ path = '/404/' }: { path?: string }) {
   usePageSeo({
     title: 'الصفحة غير موجودة | نصف عدسة',
     description: 'تعذر العثور على الصفحة المطلوبة.',
-    path: window.location.pathname,
+    path,
     noIndex: true,
   })
 

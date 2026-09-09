@@ -176,6 +176,7 @@ export function Portfolio({ items = projects }: { items?: ProjectItem[] }) {
     >
       <div className="layout-container portfolio__heading">
         <SectionHeading
+          id="portfolio-title"
           eyebrow={portfolioContent.eyebrow}
           title={portfolioContent.title}
           description={portfolioContent.description}
@@ -248,7 +249,7 @@ export function Portfolio({ items = projects }: { items?: ProjectItem[] }) {
                 <a
                   className="project__details"
                   data-project={project.id}
-                  href={`/work/${encodeURIComponent(project.slug)}`}
+                  href={`/work/${encodeURIComponent(project.slug)}/`}
                 >
                   <div className="project__status" aria-hidden="true" dir="ltr">
                     <span>
@@ -292,8 +293,8 @@ export function Portfolio({ items = projects }: { items?: ProjectItem[] }) {
       </div>
 
       <div className="layout-container portfolio__archive">
-        <a href="/work" className="portfolio__archive-link">
-          <span>استكشف أرشيف الأعمال</span>
+        <a href="/work/" className="portfolio__archive-link">
+          <span>شاهد جميع الأعمال</span>
           <span className="portfolio__archive-icon" aria-hidden="true">
             <ArrowIcon />
           </span>

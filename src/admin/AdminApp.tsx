@@ -12,14 +12,21 @@ import {
 import type { Session } from '@supabase/supabase-js'
 import { contactChannels, contactContent } from '../data/siteContent'
 import type { ContactChannel } from '../types/content'
+import { ArchiveWorkForm } from './ArchiveWorkForm'
+import { workCategories } from '../lib/workCategories'
+import { workLinkPoster } from '../lib/archiveWorks'
 import {
+  listArchiveWorks,
+  saveArchiveWork,
   deleteEntity,
   getMembership,
   importCurrentWebsiteContent,
   listClients,
+  listDeployments,
   listProjects,
   listRedirects,
   listSections,
+  publishWebsite,
   removeClientLogos,
   saveClient,
   saveClients,
@@ -32,7 +39,9 @@ import {
 import { isSupabaseConfigured, supabase } from './supabase'
 import type {
   AdminView,
+  CmsArchiveWork,
   CmsClient,
+  CmsDeployment,
   CmsMember,
   CmsProject,
   CmsRedirect,
@@ -48,10 +57,11 @@ const statusLabels: Record<PublishStatus, string> = {
 
 const navigation: Array<{ id: AdminView; label: string; index: string }> = [
   { id: 'overview', label: 'نظرة عامة', index: '01' },
-  { id: 'projects', label: 'الأعمال', index: '02' },
-  { id: 'clients', label: 'العملاء', index: '03' },
-  { id: 'sections', label: 'بيانات التواصل', index: '04' },
-  { id: 'redirects', label: 'تحويلات SEO', index: '05' },
+  { id: 'projects', label: 'أعمال الصفحة الرئيسية', index: '02' },
+  { id: 'archive', label: 'كل الأعمال', index: '03' },
+  { id: 'clients', label: 'العملاء', index: '04' },
+  { id: 'sections', label: 'بيانات التواصل', index: '05' },
+  { id: 'redirects', label: 'تحويلات SEO', index: '06' },
 ]
 
 const formatDate = (date: string) =>
@@ -161,13 +171,22 @@ function AccessDenied({ onLogout }: { onLogout: () => void }) {
 }
 
 interface AdminData {
+  archiveWorks: CmsArchiveWork[]
   projects: CmsProject[]
   clients: CmsClient[]
   sections: CmsSection[]
   redirects: CmsRedirect[]
+  deployments: CmsDeployment[]
 }
 
-const emptyData: AdminData = { projects: [], clients: [], sections: [], redirects: [] }
+const emptyData: AdminData = { archiveWorks: [], projects: [], clients: [], sections: [], redirects: [], deployments: [] }
+
+const deploymentLabels: Record<CmsDeployment['status'], string> = {
+  queued: 'في قائمة الانتظار',
+  building: 'جاري البناء',
+  succeeded: 'نجح النشر',
+  failed: 'فشل النشر',
+}
 
 function StatusBadge({ status }: { status: PublishStatus }) {
   return <span className={`status-badge status-badge--${status}`}>{statusLabels[status]}</span>
@@ -194,16 +213,40 @@ function Modal({
   children: ReactNode
   panelClassName?: string
 }) {
+  const panelRef = useRef<HTMLElement>(null)
+  const closeRef = useRef(onClose)
+  closeRef.current = onClose
   useEffect(() => {
-    const closeOnEscape = (event: KeyboardEvent) => event.key === 'Escape' && onClose()
-    window.addEventListener('keydown', closeOnEscape)
-    return () => window.removeEventListener('keydown', closeOnEscape)
-  }, [onClose])
+    const previousFocus = document.activeElement as HTMLElement | null
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const panel = panelRef.current
+    const focusable = () => Array.from(panel?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href], [tabindex="0"]') || []).filter(element => element.getClientRects().length)
+    if (!panel?.contains(document.activeElement)) (panel?.querySelector<HTMLElement>('input, select, textarea') || focusable()[0])?.focus({ preventScroll: true })
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { event.preventDefault(); closeRef.current(); return }
+      if (event.key !== 'Tab') return
+      const elements = focusable()
+      const first = elements[0], last = elements[elements.length - 1]
+      if (!first) { event.preventDefault(); return }
+      if (event.shiftKey && (document.activeElement === first || !panel?.contains(document.activeElement))) {
+        event.preventDefault(); last.focus()
+      } else if (!event.shiftKey && (document.activeElement === last || !panel?.contains(document.activeElement))) {
+        event.preventDefault(); first.focus()
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', onKeyDown)
+      if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true })
+    }
+  }, [])
 
   return (
     <div className="admin-modal" role="dialog" aria-modal="true" aria-label={title}>
-      <button className="admin-modal__backdrop" type="button" aria-label="إغلاق" onClick={onClose} />
-      <section className={`admin-modal__panel ${panelClassName}`.trim()}>
+      <button className="admin-modal__backdrop" type="button" tabIndex={-1} aria-label="إغلاق" onClick={onClose} />
+      <section ref={panelRef} className={`admin-modal__panel ${panelClassName}`.trim()}>
         <header>
           <div>
             <p className="admin-kicker"><span /> EDITOR</p>
@@ -245,6 +288,14 @@ function ProjectForm({
     status: project?.status || 'draft',
     seo_title: project?.seo_title || '',
     seo_description: project?.seo_description || '',
+    seo_image: project?.seo_image || '',
+    intro: project?.intro || '',
+    challenge: project?.challenge || '',
+    role_details: project?.role_details || '',
+    services: project?.services?.join('\n') || '',
+    deliverables: project?.deliverables?.join('\n') || '',
+    result: project?.result || '',
+    transcript: project?.transcript || '',
   })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -269,6 +320,14 @@ function ProjectForm({
         youtube_poster_url: form.youtube_poster_url || null,
         seo_title: form.seo_title || null,
         seo_description: form.seo_description || null,
+        seo_image: form.seo_image || null,
+        intro: form.intro || null,
+        challenge: form.challenge || null,
+        role_details: form.role_details || null,
+        services: form.services.split('\n').map((item) => item.trim()).filter(Boolean),
+        deliverables: form.deliverables.split('\n').map((item) => item.trim()).filter(Boolean),
+        result: form.result || null,
+        transcript: form.transcript || null,
       })
       onClose()
     } catch (submitError) {
@@ -299,6 +358,14 @@ function ProjectForm({
         <label className="span-2"><span>رابط صورة بديلة</span><input dir="ltr" type="url" value={form.image_url} onChange={(e) => update('image_url', e.target.value)} /></label>
         <label className="span-2"><span>عنوان SEO</span><input value={form.seo_title} onChange={(e) => update('seo_title', e.target.value)} maxLength={60} /></label>
         <label className="span-2"><span>وصف SEO</span><textarea value={form.seo_description} onChange={(e) => update('seo_description', e.target.value)} maxLength={160} rows={3} /></label>
+        <label className="span-2"><span>صورة المشاركة وSEO</span><input dir="ltr" type="url" value={form.seo_image} onChange={(e) => update('seo_image', e.target.value)} /></label>
+        <label className="span-2"><span>مقدمة المشروع</span><textarea value={form.intro} onChange={(e) => update('intro', e.target.value)} rows={4} /></label>
+        <label className="span-2"><span>التحدي أو الهدف</span><textarea value={form.challenge} onChange={(e) => update('challenge', e.target.value)} rows={4} /></label>
+        <label className="span-2"><span>تفاصيل دور نصف عدسة</span><textarea value={form.role_details} onChange={(e) => update('role_details', e.target.value)} rows={4} /></label>
+        <label><span>الخدمات — خدمة في كل سطر</span><textarea value={form.services} onChange={(e) => update('services', e.target.value)} rows={5} /></label>
+        <label><span>المخرجات — مخرج في كل سطر</span><textarea value={form.deliverables} onChange={(e) => update('deliverables', e.target.value)} rows={5} /></label>
+        <label className="span-2"><span>النتيجة الموثقة</span><textarea value={form.result} onChange={(e) => update('result', e.target.value)} rows={4} /></label>
+        <label className="span-2"><span>Transcript / النص المكتوب للفيلم</span><textarea value={form.transcript} onChange={(e) => update('transcript', e.target.value)} rows={8} /></label>
       </div>
       {error && <Notice tone="error">{error}</Notice>}
       <footer className="admin-form-actions"><button type="button" className="admin-secondary-button" onClick={onClose}>إلغاء</button><button type="submit" className="admin-primary-button" disabled={saving}>{saving ? 'جارٍ الحفظ…' : 'حفظ المشروع'}<ArrowIcon /></button></footer>
@@ -657,7 +724,7 @@ function Dashboard({ session, membership, onLogout }: { session: Session; member
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
-  const [editor, setEditor] = useState<{ kind: 'project' | 'client' | 'section' | 'redirect'; item: CmsProject | CmsClient | CmsSection | CmsRedirect | null } | null>(null)
+  const [editor, setEditor] = useState<{ kind: 'project' | 'archive' | 'client' | 'section' | 'redirect'; item: CmsProject | CmsArchiveWork | CmsClient | CmsSection | CmsRedirect | null } | null>(null)
   const canEdit = membership.cms_role !== 'viewer'
   const canDelete = membership.cms_role === 'owner'
   const visibleNavigation = navigation
@@ -666,13 +733,15 @@ function Dashboard({ session, membership, onLogout }: { session: Session; member
     setLoading(true)
     setError('')
     try {
-      const [projectsData, clientsData, sectionsData, redirectsData] = await Promise.all([
+      const [projectsData, clientsData, sectionsData, redirectsData, deploymentsData, archiveData] = await Promise.all([
         listProjects(),
         listClients(),
         listSections(),
         listRedirects(),
+        listDeployments(),
+        listArchiveWorks(),
       ])
-      setData({ projects: projectsData, clients: clientsData, sections: sectionsData, redirects: redirectsData })
+      setData({ projects: projectsData, clients: clientsData, sections: sectionsData, redirects: redirectsData, deployments: deploymentsData, archiveWorks: archiveData })
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'تعذر تحميل بيانات لوحة التحكم.')
     } finally {
@@ -681,6 +750,12 @@ function Dashboard({ session, membership, onLogout }: { session: Session; member
   }, [])
 
   useEffect(() => { void refresh() }, [refresh])
+
+  useEffect(() => {
+    if (!data.deployments.some((deployment) => ['queued', 'building'].includes(deployment.status))) return undefined
+    const timer = window.setInterval(() => { void refresh() }, 8000)
+    return () => window.clearInterval(timer)
+  }, [data.deployments, refresh])
 
   const notify = (text: string) => {
     setMessage(text)
@@ -721,11 +796,24 @@ function Dashboard({ session, membership, onLogout }: { session: Session; member
     }
   }
 
+  const publish = async () => {
+    if (!window.confirm('سيُبنى إصدار جديد من المحتوى المنشور ثم يُنشر على Hostinger. متابعة؟')) return
+    setError('')
+    try {
+      await publishWebsite()
+      await refresh()
+      notify('تم إرسال طلب النشر. ستتحدث الحالة تلقائيًا.')
+    } catch (publishError) {
+      setError(publishError instanceof Error ? publishError.message : 'تعذر بدء النشر.')
+    }
+  }
+
   const counts = useMemo(() => ({
+    archiveWorks: data.archiveWorks.length,
     projects: data.projects.length,
     clients: data.clients.length,
     sections: data.sections.length,
-    drafts: [...data.projects, ...data.clients, ...data.sections].filter((item) => item.status === 'draft').length,
+    drafts: [...data.projects, ...data.archiveWorks, ...data.clients, ...data.sections].filter((item) => item.status === 'draft').length,
   }), [data])
 
   const contactSection = data.sections.find((section) => section.section_key === 'contact') || null
@@ -742,6 +830,7 @@ function Dashboard({ session, membership, onLogout }: { session: Session; member
     }
 
     if (view === 'projects') setEditor({ kind: 'project', item: null })
+    if (view === 'archive') setEditor({ kind: 'archive', item: null })
     if (view === 'clients') setEditor({ kind: 'client', item: null })
     if (view === 'sections') setEditor({ kind: 'section', item: contactSection })
     if (view === 'redirects') setEditor({ kind: 'redirect', item: null })
@@ -756,7 +845,7 @@ function Dashboard({ session, membership, onLogout }: { session: Session; member
         </nav>
         <div className="admin-sidebar__account">
           <span>{session.user.email}</span>
-          <small>مالك الموقع</small>
+          <small>{{ owner: 'مالك الموقع', editor: 'محرر', viewer: 'قارئ' }[membership.cms_role]}</small>
           <button type="button" onClick={onLogout}>تسجيل الخروج</button>
         </div>
       </aside>
@@ -765,8 +854,9 @@ function Dashboard({ session, membership, onLogout }: { session: Session; member
         <header className="admin-topbar">
           <div><p className="admin-kicker"><span /> LIVE CMS / {visibleNavigation.find((item) => item.id === view)?.index}</p><h1>{viewTitle}</h1></div>
           <div className="admin-topbar__actions">
-            <a href="/" target="_blank" rel="noreferrer" className="admin-secondary-button">معاينة الموقع</a>
-            {canEdit && ['projects', 'clients', 'sections', 'redirects'].includes(view) && <button type="button" className="admin-primary-button" onClick={openPrimaryEditor}><span>{collectionNeedsInitialization ? 'استيراد المحتوى الحالي' : view === 'sections' ? 'تحرير البيانات' : 'إضافة جديد'}</span><span aria-hidden="true">＋</span></button>}
+            <a href={view === 'archive' ? '/work/' : '/'} target="_blank" rel="noreferrer" className="admin-secondary-button">{view === 'archive' ? 'معاينة كل الأعمال' : 'معاينة الموقع'}</a>
+            {canEdit && view !== 'archive' && <button type="button" className="admin-publish-button" onClick={() => void publish()} disabled={data.deployments.some((deployment) => ['queued', 'building'].includes(deployment.status))}><span>نشر الموقع</span><ArrowIcon /></button>}
+            {canEdit && ['projects', 'archive', 'clients', 'sections', 'redirects'].includes(view) && <button type="button" className="admin-primary-button" onClick={openPrimaryEditor}><span>{collectionNeedsInitialization ? 'استيراد المحتوى الحالي' : view === 'sections' ? 'تحرير البيانات' : 'إضافة جديد'}</span><span aria-hidden="true">＋</span></button>}
           </div>
           <select className="admin-mobile-nav" value={view} onChange={(event) => setView(event.target.value as AdminView)} aria-label="القسم الحالي">{visibleNavigation.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select>
         </header>
@@ -779,9 +869,9 @@ function Dashboard({ session, membership, onLogout }: { session: Session; member
             {view === 'overview' && (
               <section className="admin-overview">
                 <div className="admin-stat-grid">
-                  <button type="button" onClick={() => setView('projects')}><small>الأعمال</small><strong>{counts.projects.toString().padStart(2, '0')}</strong><span>مشروعًا في لوحة التحكم</span></button>
+                  <button type="button" onClick={() => setView('projects')}><small>أعمال الصفحة الرئيسية</small><strong>{counts.projects.toString().padStart(2, '0')}</strong><span>مشاريع مختارة للرئيسية</span></button>
                   <button type="button" onClick={() => setView('clients')}><small>العملاء</small><strong>{counts.clients.toString().padStart(2, '0')}</strong><span>شعارًا وهوية عميل</span></button>
-                  <button type="button" onClick={() => setView('sections')}><small>بيانات التواصل</small><strong>{contactSection ? '01' : '00'}</strong><span>البريد وأرقام الهاتف</span></button>
+                  <button type="button" onClick={() => setView('archive')}><small>كل الأعمال</small><strong>{counts.archiveWorks.toString().padStart(2, '0')}</strong><span>دليل مستقل عن الصفحة الرئيسية</span></button>
                   <button type="button" onClick={() => setView('projects')}><small>بانتظار النشر</small><strong>{counts.drafts.toString().padStart(2, '0')}</strong><span>مسودة تحتاج المراجعة</span></button>
                 </div>
                 <div className="admin-overview__lower">
@@ -794,6 +884,14 @@ function Dashboard({ session, membership, onLogout }: { session: Session; member
                     <h3>جاهزية لوحة التحكم</h3>
                     <ul><li><span>01</span>مصادقة وحفظ آمن للجلسة</li><li><span>02</span>حساب مالك واحد للوحة</li><li><span>03</span>إدارة مسودات ونشر وأرشفة</li><li><span>04</span>تحويلات SEO جاهزة للترحيل</li></ul>
                     {canEdit && counts.projects + counts.clients + counts.sections === 0 && <button type="button" className="admin-primary-button" onClick={importContent}>تهيئة المحتوى الحالي<ArrowIcon /></button>}
+                    {data.deployments[0] ? (
+                      <div className={`admin-deployment admin-deployment--${data.deployments[0].status}`}>
+                        <div><span aria-hidden="true" /><strong>{deploymentLabels[data.deployments[0].status]}</strong></div>
+                        <small>{formatDate(data.deployments[0].created_at)}</small>
+                        {data.deployments[0].error_message ? <p>{data.deployments[0].error_message}</p> : null}
+                        {data.deployments[0].workflow_run_url ? <a href={data.deployments[0].workflow_run_url} target="_blank" rel="noreferrer">سجل GitHub Actions</a> : null}
+                      </div>
+                    ) : <p className="admin-deployment-empty">لم يُطلب نشر ثابت بعد.</p>}
                   </article>
                 </div>
               </section>
@@ -801,6 +899,7 @@ function Dashboard({ session, membership, onLogout }: { session: Session; member
 
             {view === 'projects' && (
               <section className="admin-collection">
+                <Notice>مشاريع مختارة تظهر في الصفحة الرئيسية وصفحات تفاصيل المشاريع. لإضافة رابط إلى دليل «كل الأعمال»، استخدم قسم «كل الأعمال» المستقل.</Notice>
                 {data.projects.length === 0 ? <EmptyState title="لا توجد أعمال بعد" description="أضف مشروعًا جديدًا أو هيّئ محتوى الموقع الحالي من النظرة العامة." /> : data.projects.map((project) => (
                   <article className="admin-project-row" key={project.id}>
                     <div className="admin-project-row__media">{project.youtube_poster_url || project.image_url ? <img src={project.youtube_poster_url || project.image_url || ''} alt="" /> : <span>{project.project_code}</span>}</div>
@@ -808,6 +907,20 @@ function Dashboard({ session, membership, onLogout }: { session: Session; member
                     <div className="admin-row-actions">{canEdit && <><button type="button" onClick={() => setEditor({ kind: 'project', item: project })}>تحرير</button>{project.status !== 'published' ? <button type="button" onClick={() => void changeStatus('website_projects', project.id, 'published')}>نشر</button> : <button type="button" onClick={() => void changeStatus('website_projects', project.id, 'draft')}>إرجاع لمسودة</button>}</>}{canDelete && <button type="button" className="danger" onClick={() => void remove('website_projects', project.id, project.title)}>حذف</button>}</div>
                   </article>
                 ))}
+              </section>
+            )}
+
+            {view === 'archive' && (
+              <section className="admin-collection admin-archive" aria-label="إدارة كل الأعمال">
+                <Notice>قائمة مستقلة لصفحة «كل الأعمال». أضف النوع والاسم والعميل والسنة والرابط فقط. النشر يظهر في الدليل عند فتحه أو تحديثه، ولا يغيّر أعمال الصفحة الرئيسية. تحديث النسخة الثابتة لمحركات البحث يحتاج بناء الموقع من جديد.</Notice>
+                {data.archiveWorks.length === 0 ? <EmptyState title="لا توجد أعمال في الدليل بعد" description="اضغط إضافة جديد لحفظ أول عمل كمسودة." /> : data.archiveWorks.map(work => {
+                  const poster = workLinkPoster(work.link_url)
+                  return <article className="admin-project-row" key={work.id}>
+                    <div className="admin-project-row__media">{poster ? <img src={poster} alt="" loading="lazy" onError={e => { e.currentTarget.style.display = 'none' }} /> : <span>HL / WORK</span>}</div>
+                    <div className="admin-project-row__content"><div><small>WORK ARCHIVE</small><StatusBadge status={work.status} /></div><h2>{work.title}</h2><p>{work.client} · {workCategories.find(category => category.id === work.work_type)?.label}</p><dl><div><dt>السنة</dt><dd>{work.project_year}</dd></div><div><dt>الرابط</dt><dd><a href={work.link_url} target="_blank" rel="noopener noreferrer">فتح العمل ↗</a></dd></div></dl></div>
+                    <div className="admin-row-actions">{canEdit && <><button type="button" onClick={() => setEditor({ kind: 'archive', item: work })}>تحرير</button><button type="button" onClick={() => void changeStatus('website_archive_works', work.id, work.status === 'published' ? 'draft' : 'published')}>{work.status === 'published' ? 'إرجاع لمسودة' : 'نشر'}</button>{work.status !== 'archived' && <button type="button" onClick={() => void changeStatus('website_archive_works', work.id, 'archived')}>أرشفة</button>}</>}{canDelete && <button type="button" className="danger" onClick={() => void remove('website_archive_works', work.id, work.title)}>حذف</button>}</div>
+                  </article>
+                })}
               </section>
             )}
 
@@ -860,6 +973,7 @@ function Dashboard({ session, membership, onLogout }: { session: Session; member
       </main>
 
       {editor?.kind === 'project' && <Modal title={editor.item ? 'تحرير المشروع' : 'مشروع جديد'} onClose={() => setEditor(null)}><ProjectForm project={editor.item as CmsProject | null} onClose={() => setEditor(null)} onSave={async (item) => { await saveProject(item); await refresh(); notify('تم حفظ المشروع.') }} /></Modal>}
+      {editor?.kind === 'archive' && <Modal title={editor.item ? 'تحرير عمل في الدليل' : 'إضافة عمل إلى الدليل'} onClose={() => setEditor(null)}><ArchiveWorkForm work={editor.item as CmsArchiveWork | null} onClose={() => setEditor(null)} onSave={async item => { await saveArchiveWork(item); await refresh(); notify('تم حفظ العمل في الدليل المستقل.') }} /></Modal>}
       {editor?.kind === 'client' && (
         <Modal
           title={editor.item ? 'تحرير شعار العميل' : 'إضافة شعارات العملاء'}

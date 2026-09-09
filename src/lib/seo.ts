@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 
-const productionOrigin = 'https://h-lens.co'
+import { defaultSocialImage, productionOrigin } from './routeSeo'
 
 interface SeoOptions {
   title: string
@@ -19,7 +19,7 @@ export function usePageSeo({
   title,
   description,
   path = '/',
-  image = '/media/h-lens-camera-poster.60f5cbbaa591.webp',
+  image = defaultSocialImage,
   noIndex = false,
 }: SeoOptions) {
   useEffect(() => {

@@ -42,7 +42,15 @@ try {
         scrollTo({ top: top + p * range, behavior: 'instant' })
         return Math.round((2 / 48 + (v.duration - .05 - 2 / 48) * ((scrollY - top) / range)) * 48) / 48
       }, p)
-      await page.waitForFunction(target => { const v = document.querySelector('video'); return !v.seeking && Math.abs(v.currentTime - target) < 1.1 / 48 }, target, { timeout: 30000 })
+      try {
+        await page.waitForFunction(target => { const v = document.querySelector('video'); return !v.seeking && Math.abs(v.currentTime - target) < 1.1 / 48 }, target, { timeout: 30000 })
+      } catch (error) {
+        console.error('Unsettled R2 seek', await page.evaluate(target => {
+          const v = document.querySelector('video'), s = document.querySelector('.cinematic-story__chapters')
+          return { target, actual: v.currentTime, ready: v.readyState, seeking: v.seeking, error: v.error?.message, y: scrollY, range: s.offsetHeight - innerHeight, fonts: document.fonts.status, stage: v.parentElement.className }
+        }, target))
+        throw error
+      }
     }
     assert.deepEqual(errors, [])
     report.push({ test: saveData ? 'R2-save-data' : 'R2-native-preparation', beforeScroll, requests, errors })

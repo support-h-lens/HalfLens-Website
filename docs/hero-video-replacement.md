@@ -90,5 +90,26 @@ against actual R2 media, Save Data and local fetch/fallback races.
 including actual presented frames (not just currentTime writes). Its timings are
 machine-dependent lab results, not guarantees for physical phones or all browsers.
 
+### Mobile Safari startup
+
+Paused remote videos may stop at metadata-only readiness on iOS. The media stage
+now briefly starts muted inline playback after scroll intent when it has no
+decoded frame, pauses it, and only then hands control to the scroll scheduler.
+Its metadata handler must not pause an in-progress decoder warm-up. Further touch
+events never restart a video that is already initialized. Gesture listeners and
+pending play results are invalidated on source changes and unmount.
+
+If the browser rejects startup with `NotAllowedError`, an accessible
+“تشغيل حركة الكاميرا” button lets the visitor retry within a real tap. The normal
+design remains unchanged when playback is allowed. Reduced Motion skips warm-up
+and preserves the static experience. No media re-upload or R2 policy change is
+required for this fix.
+
+`node scripts/check-mobile-video-startup.mjs` covers actual R2 loading in Chromium
+and WebKit, simulated metadata-only and gesture-required policies, early scrolling
+on a delayed connection, orientation switches, reverse scrolling, presented frames
+(pixel captures for WebKit), and live Reduced Motion changes. iOS policy simulation
+and desktop WebKit are not substitutes for final confirmation on a physical iPhone.
+
 `npm run lint` and `npm run build` validate the application. The build continues
 to report the existing pending SEO migration decisions, unrelated to this change.

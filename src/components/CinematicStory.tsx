@@ -11,6 +11,7 @@ export function CinematicStory() {
   const storyRef = useRef<HTMLDivElement>(null)
   const chaptersRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
+  const [needsVideoTap, setNeedsVideoTap] = useState(false)
   const [readyVideo, setReadyVideo] = useState<{
     currentSrc: string
     duration: number
@@ -148,11 +149,12 @@ export function CinematicStory() {
           portraitPosterSrc={cinematicFilm.mobilePoster}
           initialTime={cinematicFilm.initialTime}
           onVideoReady={setReadyVideo}
+          onPlaybackBlocked={setNeedsVideoTap}
         />
       </div>
 
       <div ref={chaptersRef} className="cinematic-story__chapters">
-        <Hero />
+        <Hero onStartFilm={needsVideoTap ? () => videoRef.current?.dispatchEvent(new Event('hlens:activate-video')) : undefined} />
         <Services />
       </div>
       <div className="cinematic-story__tail" aria-hidden="true" />

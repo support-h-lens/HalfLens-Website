@@ -3,6 +3,20 @@
 
 .site-nav--scrolled, .site-nav--surface { background: var(--hl-cinema); }
 
+/* Shown only when the browser explicitly rejects silent decoder startup. */
+.hero__film-start {
+  min-height: 44px;
+  margin-block-start: 14px;
+  padding: 8px 16px;
+  border: 1px solid var(--hl-soft-blue);
+  background: var(--hl-cinema);
+  color: var(--hl-ice);
+  font: inherit;
+  font-size: .9rem;
+  cursor: pointer;
+}
+.hero__film-start:focus-visible { outline: 2px solid var(--hl-ice); outline-offset: 4px; }
+
 .section-marker {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;

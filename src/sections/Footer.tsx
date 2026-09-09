@@ -21,7 +21,7 @@ export function Footer({ routeMode = false }: { routeMode?: boolean }) {
     if (!footer) return
     const media = gsap.matchMedia()
     const context = gsap.context(() => {
-      media.add('(min-width: 721px) and (prefers-reduced-motion: no-preference)', () => {
+      media.add('(min-width: 721px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)', () => {
         const content = footer.querySelector('.footer__reveal-content')
         gsap.fromTo(footer.querySelector('.footer__edge'), { scaleY: 1 }, {
           scaleY: 0, ease: 'none',

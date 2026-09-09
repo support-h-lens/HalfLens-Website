@@ -48,6 +48,7 @@ export class CinematicFrameScheduler {
 
   private desiredFrame: number
   private lastRequestedFrame: number | null = null
+  private lastCompletedRequestedFrame: number | null = null
   private lastPresentedFrame: number
   private lastDecodedFrame: number
   private direction: FrameDirection = 0
@@ -145,7 +146,7 @@ export class CinematicFrameScheduler {
   private pump() {
     if (this.destroyed || this.inFlight || this.video.seeking || this.video.readyState < 2 || this.video.error) return
 
-    if (this.lastDecodedFrame === this.desiredFrame) {
+    if (this.hasDecodedTarget()) {
       this.reportSettled()
       return
     }
@@ -201,6 +202,7 @@ export class CinematicFrameScheduler {
     this.presentationTimer = 0
     if (this.destroyed || this.video.seeking) return
     window.clearTimeout(this.recoveryTimer)
+    if (this.inFlight) this.lastCompletedRequestedFrame = this.lastRequestedFrame
     this.inFlight = false
     this.reportSettled()
     this.queuePump()
@@ -241,7 +243,7 @@ export class CinematicFrameScheduler {
   private reportSettled() {
     if (
       this.inFlight
-      || this.lastDecodedFrame !== this.desiredFrame
+      || !this.hasDecodedTarget()
       || !this.isAtDesiredTarget()
       || this.lastSettledFrame === this.desiredFrame
     ) return
@@ -264,13 +266,24 @@ export class CinematicFrameScheduler {
   }
 
   private isAtDesiredTarget() {
-    const requestedTargetIsCurrent = this.lastRequestedFrame === this.desiredFrame
+    const requestedTargetIsCurrent = this.lastCompletedRequestedFrame === this.desiredFrame
       && Math.abs(this.video.currentTime - this.frameToTime(this.desiredFrame))
-        <= 0.25 / this.frameRate
+        <= 1 / this.frameRate
     const presentedTargetIsCurrent = Math.abs(this.lastPresentedFrame - this.desiredFrame) <= 1
 
     return (this.lastPresentedFrame === this.desiredFrame)
       || (requestedTargetIsCurrent && presentedTargetIsCurrent)
+  }
+
+  private hasDecodedTarget() {
+    // WebKit can finish a seek on the adjacent presentation timestamp. Repeating
+    // the identical request cannot improve that quantization and can keep the
+    // decoder busy forever after a finger stops. Accept only a COMPLETED request
+    // for this exact target within one frame, never an uncompleted currentTime
+    // assignment or a stale target after a direction change.
+    return this.lastDecodedFrame === this.desiredFrame
+      || (this.lastCompletedRequestedFrame === this.desiredFrame
+        && Math.abs(this.lastDecodedFrame - this.desiredFrame) <= 1)
   }
 
   private clampFrame(frame: number) {

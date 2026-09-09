@@ -23,13 +23,16 @@ export function SectionWindow({ children, className = '', theme }: SectionWindow
         {
           desktop: '(min-width: 721px)',
           mobile: '(max-width: 720px)',
+          touch: '(hover: none), (pointer: coarse)',
           reduceMotion: '(prefers-reduced-motion: reduce)',
         },
         ({ conditions }) => {
-          const { desktop, mobile, reduceMotion } = conditions ?? {}
+          const { desktop, mobile, touch, reduceMotion } = conditions ?? {}
+          // Native document movement on touch; no whole-section rasterization.
+          if (mobile || touch) return
 
           if (reduceMotion) {
-            gsap.set(panel, { autoAlpha: 1, borderRadius: 0, scale: 1, y: 0 })
+            gsap.set(panel, { autoAlpha: 1, borderRadius: 0, clearProps: 'transform,willChange' })
             return
           }
 

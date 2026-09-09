@@ -376,6 +376,90 @@
 @media (hover: none), (pointer: coarse) {
   .lens-field__hint { display: none; }
   .project-index__preview { opacity: 1; transform: none; }
+
+  /* Keep the native video compositor path on phones. The existing stage
+     gradient supplies the contrast without filtering every decoded frame. */
+  .cinematic-media-stage__video,
+  .cinematic-media-stage__poster img { filter: none; }
+}
+
+@media (max-width: 720px), (hover: none), (pointer: coarse) {
+  /* Static, readable touch content before hydration and throughout a fling.
+     Only the camera timeline and the compact works-sheet edge track scrolling. */
+  .services__intro, .service-item,
+  .services__intro-index, .services__section-name, .services__intro-statement,
+  .services__intro-copy, .services__intro-rule,
+  .service-item__geometry, .service-item__rail, .service-item__number,
+  .service-item__meta, .service-item__title-mask h3, .service-item__copy,
+  .service-item__progress, .project__visual, .project__media-surface,
+  .project__details, .project__details > *, .project__metadata > div,
+  .section-window__panel {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    will-change: auto;
+  }
+  .project__visual { clip-path: none; }
+  .section-window__panel { border-radius: 0; }
+}
+
+/* A landscape film must not inherit the desktop exhibition's minimum height.
+   Zero-minimum grid tracks also prevent long Arabic copy sizing the entire
+   project wider than the viewport (overflow:hidden only concealed that bug). */
+@media (max-width: 720px), (hover: none) and (pointer: coarse) and (max-width: 980px) {
+  .project:nth-child(n) .project__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
+    margin-inline: 0;
+  }
+  .project:nth-child(n) .project__visual {
+    order: 0;
+    min-width: 0;
+    min-height: 0;
+    aspect-ratio: var(--project-media-aspect, 16 / 9);
+  }
+  .project:nth-child(n) .project__details {
+    order: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
+    min-height: 0;
+    gap: 20px;
+    padding: 24px 20px 28px;
+  }
+  .project__details > *, .project__metadata > div > * { min-width: 0; }
+  .project__title-group { padding-block: 0; }
+  .project__details h3 {
+    max-width: none;
+    margin: 0;
+    font-size: clamp(1.75rem, 7.2vw, 2.25rem);
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+    text-wrap: wrap;
+  }
+  .project__details .project__kicker {
+    margin-block-end: 10px;
+    font-size: .75rem;
+    line-height: 1.8;
+    overflow-wrap: anywhere;
+  }
+  .project__status { gap: 10px; font-size: .65rem; }
+  .project__metadata { margin: 0; }
+  .project__metadata > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+    padding-block: 12px;
+  }
+  .project__metadata dt { font-size: .75rem; }
+  .project__metadata dd {
+    margin: 0;
+    font-size: .95rem;
+    line-height: 1.85;
+    overflow-wrap: anywhere;
+  }
+  .project:nth-child(n) .project__meta { grid-column: auto; min-height: 44px; font-size: .9rem; }
+  .project-video__poster { object-fit: contain; transform: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .work-results__content { animation: none; }

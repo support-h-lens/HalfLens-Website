@@ -29,13 +29,19 @@ export function CinematicStory() {
     if (!story || !chapters) return
     const media = gsap.matchMedia()
     const context = gsap.context(() => {
-      media.add('(prefers-reduced-motion: no-preference)', () => {
+      media.add({
+        motion: '(prefers-reduced-motion: no-preference)',
+        desktop: '(min-width: 721px) and (hover: hover) and (pointer: fine)',
+      }, ({ conditions }) => {
+        if (!conditions?.motion) return
         const hero = story.querySelector<HTMLElement>('.hero')
         if (!hero) return
-        gsap.to(hero, {
-          y: () => hero.offsetHeight * .62, ease: 'none',
-          scrollTrigger: { trigger: story, start: 'top top', end: () => `+=${hero.offsetHeight}`, scrub: true, invalidateOnRefresh: true },
-        })
+        if (conditions.desktop) {
+          gsap.to(hero, {
+            y: () => hero.offsetHeight * .62, ease: 'none',
+            scrollTrigger: { trigger: story, start: 'top top', end: () => `+=${hero.offsetHeight}`, scrub: true, invalidateOnRefresh: true },
+          })
+        }
         gsap.to(hero.querySelector('.hero__layout'), {
           opacity: 0, ease: 'none',
           scrollTrigger: { trigger: story, start: () => `top -=${hero.offsetHeight * .35}`, end: () => `top -=${hero.offsetHeight * .9}`, scrub: true, invalidateOnRefresh: true },

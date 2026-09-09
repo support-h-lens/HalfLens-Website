@@ -15,9 +15,10 @@ globalThis.window = {
 globalThis.document = { readyState: 'complete', fonts: { ready: Promise.resolve() } }
 const source = (await readFile(new URL('../src/lib/gsap.ts', import.meta.url), 'utf8'))
   .replace("import gsap from 'gsap'", 'const gsap = { registerPlugin() {} }')
-  .replace("import { ScrollTrigger } from 'gsap/ScrollTrigger'", 'const ScrollTrigger = { refresh() { window.refreshCount++ } }')
+  .replace("import { ScrollTrigger } from 'gsap/ScrollTrigger'", 'const ScrollTrigger = { config(options) { window.scrollConfig = options }, refresh() { window.refreshCount++ } }')
 const code = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 } }).outputText
 const { refreshScrollTriggerWhenReady } = await import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`)
+assert.equal(window.scrollConfig.ignoreMobileResize, true, 'touch toolbar resizing must not rebuild timelines')
 const flush = () => { const pending = [...frames.values()]; frames.clear(); pending.forEach(callback => callback()) }
 const cleanups = Array.from({ length: 15 }, () => refreshScrollTriggerWhenReady())
 await Promise.resolve()

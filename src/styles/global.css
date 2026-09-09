@@ -1647,6 +1647,7 @@ ol {
 
 .portfolio__projects {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 1px;
   width: 100%;
   background: var(--line-light);
@@ -1654,6 +1655,7 @@ ol {
 
 .project {
   position: relative;
+  min-width: 0;
   background: var(--paper);
 }
 

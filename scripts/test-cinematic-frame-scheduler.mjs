@@ -98,6 +98,29 @@ test('ignores invalid progress and clamps the boundaries', () => {
   scheduler.setProgress(2); tick(); assert.equal(lastFrame(video), frame(1))
   video.finish(); video.present(); scheduler.setProgress(-2); tick(); assert.equal(lastFrame(video), frame(0)); scheduler.destroy()
 })
+
+test('WebKit adjacent-frame timestamps settle without repeatedly seeking the same target', () => {
+  const { video, scheduler } = setup()
+  scheduler.setProgress(.3); tick()
+  video.time += 0.75 / 48
+  video.finish(); video.present(); tick()
+  for (let i = 0; i < 20; i++) { scheduler.setProgress(.3); advance(150); tick() }
+  assert.equal(video.writes.length, 1, 'one completed quantized seek must not become a retry loop')
+  scheduler.setProgress(.1); tick()
+  assert.equal(video.writes.length, 2, 'reversal still requests the exact new target')
+  assert.equal(lastFrame(video), frame(.1))
+  scheduler.destroy()
+})
+
+test('a completed seek far from the target is not incorrectly treated as settled', () => {
+  const { video, scheduler } = setup(true)
+  scheduler.setProgress(.3); tick()
+  video.time += 3 / 48
+  video.finish(); tick()
+  assert.equal(video.writes.length, 2)
+  assert.equal(lastFrame(video), frame(.3))
+  scheduler.destroy()
+})
 test('destroy cancels callbacks, timers and pending work', () => {
   const { video, scheduler } = setup()
   scheduler.setProgress(.7); tick(); scheduler.destroy()

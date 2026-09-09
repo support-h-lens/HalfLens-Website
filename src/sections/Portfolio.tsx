@@ -24,10 +24,13 @@ export function Portfolio({ items = projects }: { items?: ProjectItem[] }) {
         {
           desktop: '(min-width: 721px)',
           mobile: '(max-width: 720px)',
+          touch: '(hover: none), (pointer: coarse)',
           reduceMotion: '(prefers-reduced-motion: reduce)',
         },
         ({ conditions }) => {
-          const { desktop, mobile, reduceMotion } = conditions ?? {}
+          const { desktop, mobile, touch, reduceMotion } = conditions ?? {}
+          // The native touch sheet needs no JS reveal setup or teardown.
+          if (mobile || touch) return
           const revealCleanups: Array<() => void> = []
 
           projectElements.forEach((project, projectIndex) => {
@@ -40,10 +43,9 @@ export function Portfolio({ items = projects }: { items?: ProjectItem[] }) {
             if (!visual || !surface || !details) return
 
             if (reduceMotion) {
-              gsap.set(visual, { clipPath: 'inset(0% 0% 0% 0% round 0px)' })
-              gsap.set(surface, { scale: 1 })
-              gsap.set(details, { autoAlpha: 1, x: 0, y: 0 })
-              gsap.set(detailItems, { autoAlpha: 1, y: 0 })
+              gsap.set([visual, surface, details, ...detailItems], {
+                autoAlpha: 1, clearProps: 'transform,clipPath,willChange',
+              })
               return
             }
 

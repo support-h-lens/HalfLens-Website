@@ -3,6 +3,11 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 gsap.registerPlugin(ScrollTrigger)
 
+// Safari's expanding/collapsing toolbar is not a new page layout. Rebuilding
+// every scroll timeline during that height-only resize makes the film jump.
+// GSAP still refreshes for orientation/width changes and substantial resizes.
+ScrollTrigger.config({ ignoreMobileResize: true })
+
 export { gsap, ScrollTrigger }
 
 // Every animated section subscribes to load/fonts. Batch their requests so one

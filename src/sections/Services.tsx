@@ -23,10 +23,14 @@ export function Services() {
         {
           desktop: '(min-width: 721px)',
           mobile: '(max-width: 720px)',
+          touch: '(hover: none), (pointer: coarse)',
           reduceMotion: '(prefers-reduced-motion: reduce)',
         },
         ({ conditions }) => {
-          const { mobile, reduceMotion } = conditions ?? {}
+          const { mobile, touch, reduceMotion } = conditions ?? {}
+          // CSS supplies the static touch layout, including before hydration.
+          // Avoid hundreds of GSAP read/write operations just to set it visible.
+          if (mobile || touch) return
           const introElements = intro.querySelectorAll<HTMLElement>(
             '.services__intro-index, .services__section-name, .services__intro-statement, .services__intro-copy, .services__intro-rule',
           )

@@ -4,7 +4,7 @@ import { chromium, firefox, webkit } from '../../pw-diag/node_modules/playwright
 
 const base = process.env.HLENS_BENCH_URL || 'http://127.0.0.1:5189'
 await mkdir('artifacts/service-rails', { recursive: true })
-for (const engine of [chromium, firefox, webkit]) {
+for (const engine of [chromium, firefox, webkit].filter(engine => !process.env.HLENS_BROWSER || engine.name() === process.env.HLENS_BROWSER)) {
   const browser = await engine.launch()
   try {
     const profiles = engine === chromium
@@ -25,6 +25,16 @@ for (const engine of [chromium, firefox, webkit]) {
             scrollTo({ top: scrollY + item.getBoundingClientRect().top - innerHeight * offset, behavior: 'instant' })
           }, { index, offset })
           await page.waitForTimeout(90)
+          if (offset === .05) {
+            // A delayed WebKit paint can exceed 90ms. Observe the settled rail
+            // instead of treating an arbitrary sleep as animation completion.
+            await page.waitForFunction(index => {
+              const item = document.querySelectorAll('.service-item')[index]
+              const frame = item.querySelector('.service-item__geometry').getBoundingClientRect()
+              const rail = item.querySelector('.service-item__rail').getBoundingClientRect()
+              return frame.width - rail.width <= 3
+            }, index, { timeout: 8000 })
+          }
           const metrics = await page.locator('.service-item').nth(index).evaluate(item => {
             const geometry = item.querySelector('.service-item__geometry'), rail = item.querySelector('.service-item__rail')
             const g = geometry.getBoundingClientRect(), r = rail.getBoundingClientRect()

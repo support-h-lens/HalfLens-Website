@@ -109,6 +109,8 @@ export function CinematicStory() {
             frameRate: cinematicFilm.frameRate,
             firstTime: firstFrame,
             lastTime: lastFrame,
+            onStalled: () => setNeedsVideoTap(true),
+            onRecovered: () => setNeedsVideoTap(false),
           })
           const scrollTrigger = ScrollTrigger.create({
             // Finish the film before the following sheet starts covering it.
@@ -143,6 +145,13 @@ export function CinematicStory() {
 
   return (
     <div ref={storyRef} className="cinematic-story">
+      {needsVideoTap ? (
+        <div className="cinematic-story__recovery">
+          <button className="hero__film-start" type="button" onClick={() => videoRef.current?.dispatchEvent(new Event('hlens:activate-video'))}>
+            تشغيل حركة الكاميرا
+          </button>
+        </div>
+      ) : null}
       <div className="cinematic-story__sticky" aria-hidden="true">
         <CinematicMediaStage
           key={videoSource.assetSrc}
@@ -160,7 +169,7 @@ export function CinematicStory() {
       </div>
 
       <div ref={chaptersRef} className="cinematic-story__chapters">
-        <Hero onStartFilm={needsVideoTap ? () => videoRef.current?.dispatchEvent(new Event('hlens:activate-video')) : undefined} />
+        <Hero />
         <Services />
       </div>
       <div className="cinematic-story__tail" aria-hidden="true" />

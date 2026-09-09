@@ -36,6 +36,8 @@ interface CinematicFrameSchedulerOptions {
   frameRate: number
   firstTime: number
   lastTime: number
+  onStalled?: () => void
+  onRecovered?: () => void
 }
 
 export class CinematicFrameScheduler {
@@ -45,6 +47,9 @@ export class CinematicFrameScheduler {
   private readonly lastTime: number
   private readonly firstFrame: number
   private readonly lastFrame: number
+  private readonly onStalled?: () => void
+  private readonly onRecovered?: () => void
+  private reportedStall = false
 
   private desiredFrame: number
   private lastRequestedFrame: number | null = null
@@ -82,11 +87,15 @@ export class CinematicFrameScheduler {
     frameRate,
     firstTime,
     lastTime,
+    onStalled,
+    onRecovered,
   }: CinematicFrameSchedulerOptions) {
     this.video = video
     this.frameRate = frameRate
     this.firstTime = firstTime
     this.lastTime = lastTime
+    this.onStalled = onStalled
+    this.onRecovered = onRecovered
     this.firstFrame = this.timeToFrame(firstTime)
     this.lastFrame = this.timeToFrame(lastTime)
     this.lastPresentedFrame = this.clampFrame(this.timeToFrame(video.currentTime))
@@ -204,6 +213,10 @@ export class CinematicFrameScheduler {
     window.clearTimeout(this.recoveryTimer)
     if (this.inFlight) this.lastCompletedRequestedFrame = this.lastRequestedFrame
     this.inFlight = false
+    if (this.reportedStall) {
+      this.reportedStall = false
+      this.onRecovered?.()
+    }
     this.reportSettled()
     this.queuePump()
   }
@@ -235,6 +248,10 @@ export class CinematicFrameScheduler {
     this.recoveryTimer = window.setTimeout(() => {
       if (this.destroyed || !this.inFlight) return
       this.completeSeek()
+      if (this.inFlight && !this.reportedStall && performance.now() - this.requestedAt >= 5000) {
+        this.reportedStall = true
+        this.onStalled?.()
+      }
       // Never interrupt a real network/decode seek, which would repeatedly restart it.
       if (this.inFlight && !this.video.error) this.scheduleRecovery()
     }, SEEK_RECOVERY_DELAY_MS)

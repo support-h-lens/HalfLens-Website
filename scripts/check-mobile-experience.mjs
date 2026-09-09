@@ -24,7 +24,9 @@ for (const engine of baseline ? [chromium] : [chromium, webkit]) {
         window.filmEvents = []
         window.addEventListener('hlens:cinematic-video', e => window.filmEvents.push(e.detail))
       })
-      await page.goto(base, { waitUntil: 'networkidle' })
+      // Background video range loads need not go idle before layout is usable.
+      // Check the actual font, media and poster readiness at their use sites.
+      await page.goto(base, { waitUntil: 'load' })
       await page.evaluate(() => document.fonts.ready)
       const layout = await page.evaluate(() => [...document.querySelectorAll('.project')].map(p => {
         const v = p.querySelector('.project__visual'), d = p.querySelector('.project__details'), h = d.querySelector('h3')
@@ -52,7 +54,10 @@ for (const engine of baseline ? [chromium] : [chromium, webkit]) {
         const cdp = engine === chromium ? await page.context().newCDPSession(page) : null
         if (cdp) await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 })
         await page.evaluate(() => dispatchEvent(new Event('touchstart')))
-        await page.waitForFunction(() => { const v = document.querySelector('video'); return v?.readyState >= 2 && !v.seeking }, null, { timeout: 30000 })
+        await page.waitForFunction(() => {
+          const v = document.querySelector('video')
+          return v?.readyState >= 2 && !v.seeking && v.paused && v.parentElement.classList.contains('is-video-ready')
+        }, null, { timeout: 30000 })
         await page.waitForTimeout(500)
         film = await page.evaluate(async () => {
           const v = document.querySelector('video'), chapters = document.querySelector('.cinematic-story__chapters')

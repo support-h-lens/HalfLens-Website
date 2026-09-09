@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef, type CSSProperties } from 'react'
 import { ArrowIcon } from '../components/ArrowIcon'
 import { productionStages, services, servicesContent } from '../data/siteContent'
 import { gsap, refreshScrollTriggerWhenReady } from '../lib/gsap'
+import { revealServiceCards } from '../lib/revealServiceCards'
 
 export function Services() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -28,9 +29,15 @@ export function Services() {
         },
         ({ conditions }) => {
           const { mobile, touch, reduceMotion } = conditions ?? {}
-          // CSS supplies the static touch layout, including before hydration.
-          // Avoid hundreds of GSAP read/write operations just to set it visible.
-          if (mobile || touch) return
+          // Keep native scrolling; reveal whole cards once without rebuilding
+          // layered scroll timelines during a phone's inertial scroll.
+          if (mobile || touch) {
+            if (reduceMotion) return
+            return revealServiceCards(intro, items.flatMap(item => {
+              const frame = item.querySelector<HTMLElement>('.service-item__frame')
+              return frame ? [frame] : []
+            }))
+          }
           const introElements = intro.querySelectorAll<HTMLElement>(
             '.services__intro-index, .services__section-name, .services__intro-statement, .services__intro-copy, .services__intro-rule',
           )

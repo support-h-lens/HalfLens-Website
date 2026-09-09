@@ -43,10 +43,10 @@ class Video extends EventTarget {
 }
 const frame = p => Math.round((2 / 48 + (10.020833 - .05 - 2 / 48) * p) * 48)
 const lastFrame = video => Math.round(video.writes.at(-1) * 48)
-function setup(fallback = false) {
+function setup(fallback = false, callbacks = {}) {
   const video = new Video()
   if (fallback) video.requestVideoFrameCallback = undefined
-  const scheduler = new CinematicFrameScheduler({ video, frameRate: 48, firstTime: 2 / 48, lastTime: 10.020833 - .05 })
+  const scheduler = new CinematicFrameScheduler({ video, frameRate: 48, firstTime: 2 / 48, lastTime: 10.020833 - .05, ...callbacks })
   return { video, scheduler }
 }
 function test(name, fn) {
@@ -97,6 +97,18 @@ test('ignores invalid progress and clamps the boundaries', () => {
   assert.equal(video.writes.length, 0)
   scheduler.setProgress(2); tick(); assert.equal(lastFrame(video), frame(1))
   video.finish(); video.present(); scheduler.setProgress(-2); tick(); assert.equal(lastFrame(video), frame(0)); scheduler.destroy()
+})
+
+test('a stalled seek offers recovery once, without restarting downloads, and clears after recovery', () => {
+  let stalled = 0, recovered = 0
+  const { video, scheduler } = setup(true, { onStalled: () => stalled++, onRecovered: () => recovered++ })
+  scheduler.setProgress(.6); tick()
+  for (let i = 0; i < 50; i++) { advance(150); tick() }
+  assert.equal(stalled, 1)
+  assert.equal(video.writes.length, 1, 'watchdog never aborts a network seek')
+  video.finish(); tick()
+  assert.equal(recovered, 1)
+  scheduler.destroy()
 })
 
 test('WebKit adjacent-frame timestamps settle without repeatedly seeking the same target', () => {

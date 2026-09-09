@@ -3,7 +3,17 @@
 
 .site-nav--scrolled, .site-nav--surface { background: var(--hl-cinema); }
 
-/* Shown only when the browser explicitly rejects silent decoder startup. */
+/* A real tap can recover blocked startup or a stalled network/decode seek.
+   Keep the control reachable while reading services, outside the fading hero. */
+.cinematic-story__recovery {
+  position: sticky;
+  top: calc(100svh - max(88px, env(safe-area-inset-bottom, 0px) + 64px));
+  height: 0;
+  z-index: 5;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
 .hero__film-start {
   min-height: 44px;
   margin-block-start: 14px;
@@ -14,8 +24,11 @@
   font: inherit;
   font-size: .9rem;
   cursor: pointer;
+  pointer-events: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, .2);
 }
 .hero__film-start:focus-visible { outline: 2px solid var(--hl-ice); outline-offset: 4px; }
+.cinematic-media-stage.has-video-poster.is-video-priming .cinematic-media-stage__video { opacity: 1; }
 
 .section-marker {
   display: grid;
@@ -387,8 +400,8 @@
 }
 
 @media (max-width: 720px), (hover: none), (pointer: coarse) {
-  /* Static, readable touch content before hydration and throughout a fling.
-     Only the camera timeline and the compact works-sheet edge track scrolling. */
+  /* Readable touch content before hydration. One-time whole-card entrances
+     temporarily animate above this state; no content relies on JS to appear. */
   .services__intro, .service-item,
   .services__intro-index, .services__section-name, .services__intro-statement,
   .services__intro-copy, .services__intro-rule,

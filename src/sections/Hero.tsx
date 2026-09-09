@@ -1,7 +1,7 @@
 import { ArrowIcon } from '../components/ArrowIcon'
 import { heroContent } from '../data/siteContent'
 
-export function Hero({ onStartFilm }: { onStartFilm?: () => void } = {}) {
+export function Hero() {
   return (
     <section id="hero" className="hero cinematic-chapter" aria-labelledby="hero-title">
       <div className="layout-container hero__layout">
@@ -48,11 +48,6 @@ export function Hero({ onStartFilm }: { onStartFilm?: () => void } = {}) {
               {heroContent.secondaryAction}
             </a>
           </div>
-          {onStartFilm ? (
-            <button className="hero__film-start" type="button" onClick={onStartFilm}>
-              تشغيل حركة الكاميرا
-            </button>
-          ) : null}
         </div>
 
         <a className="scroll-cue" href="#services">

@@ -22,9 +22,6 @@ export const heroContent = {
     'شريكك في الإنتاج الفني، من الفكرة إلى آخر فريم.',
   primaryAction: 'شاهد أعمالنا',
   secondaryAction: 'ابدأ مشروعك',
-  profileAction: 'استكشف ملفنا',
-  profileMeta: 'PROFILE · PDF',
-  profileHref: '/documents/h-lens-company-profile-afbed7cf.pdf',
 }
 
 export const storyContent = {

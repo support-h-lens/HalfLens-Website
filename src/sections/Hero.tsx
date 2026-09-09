@@ -55,37 +55,6 @@ export function Hero({ onStartFilm }: { onStartFilm?: () => void } = {}) {
           ) : null}
         </div>
 
-        <a
-          className="hero__profile-link"
-          href={heroContent.profileHref}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <span className="hero__profile-dial" aria-hidden="true">
-            <svg className="hero__profile-orbit" viewBox="0 0 140 140">
-              <defs>
-                <path
-                  id="hero-profile-orbit-path"
-                  d="M 70,70 m -53,0 a 53,53 0 1,1 106,0 a 53,53 0 1,1 -106,0"
-                />
-              </defs>
-              <circle cx="70" cy="70" r="60" />
-              <text>
-                <textPath href="#hero-profile-orbit-path">
-                  H-LENS · COMPANY PROFILE · PDF · H-LENS ·
-                </textPath>
-              </text>
-            </svg>
-            <span className="hero__profile-icon">
-              <ArrowIcon />
-            </span>
-          </span>
-          <span className="hero__profile-copy">
-            <span className="hero__profile-meta">{heroContent.profileMeta}</span>
-            <strong>{heroContent.profileAction}</strong>
-          </span>
-        </a>
-
         <a className="scroll-cue" href="#services">
           <strong>مرّر لمشاهدة العرض</strong>
           <span className="scroll-cue__motion" aria-hidden="true">

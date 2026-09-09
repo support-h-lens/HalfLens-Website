@@ -17,6 +17,24 @@ for (const engine of [chromium, firefox, webkit].filter(engine => !process.env.H
       await page.goto(base, { waitUntil: 'load' })
       await page.evaluate(() => document.fonts.ready)
       await page.waitForFunction(() => document.querySelectorAll('.service-item__geometry > .service-item__rail').length === 5)
+      if (width <= 720) {
+        const surfaces = await page.locator('.service-item').evaluateAll(items => items.map(item => {
+          const outer = getComputedStyle(item)
+          const inner = getComputedStyle(item.querySelector('.service-item__geometry'))
+          return {
+            outerBackground: outer.backgroundImage,
+            outerColor: outer.backgroundColor,
+            outerBorders: [outer.borderTopWidth, outer.borderRightWidth, outer.borderBottomWidth, outer.borderLeftWidth],
+            innerBackground: inner.backgroundImage,
+            innerBorder: inner.borderTopWidth,
+          }
+        }))
+        assert.ok(surfaces.every(surface => surface.outerBackground === 'none'
+          && surface.outerColor === 'rgba(0, 0, 0, 0)'
+          && surface.outerBorders.every(border => border === '0px')
+          && surface.innerBackground !== 'none' && parseFloat(surface.innerBorder) > 0),
+        `Mobile services must have only the inner card surface: ${JSON.stringify(surfaces)}`)
+      }
       for (let index = 0; index < 5; index++) {
         for (const offset of [.8, .4, .05, -.3]) {
           await page.evaluate(({ index, offset }) => {

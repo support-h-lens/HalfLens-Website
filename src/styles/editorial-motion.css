@@ -345,6 +345,9 @@
   .services__intro-statement { font-size: clamp(2rem, 8.5vw, 3rem); line-height: 1.45; }
   .services__section-name { font-size: clamp(4.5rem, 22vw, 7rem); }
   .service-item, .service-item:nth-child(n) { min-height: 94svh; padding-block: 14svh; }
+  /* Only the inner frame is a card. The outer item supplies scroll spacing,
+     not the legacy full-height gradient panel behind that card. */
+  .service-item { border: 0; background: none; }
   .service-item__frame { width: 100%; --service-frame-padding: 24px; }
   .service-item h3 { font-size: clamp(1.85rem, 7.5vw, 2.75rem); }
   .service-item__number { font-size: 3.5rem; }

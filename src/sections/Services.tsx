@@ -29,8 +29,8 @@ export function Services() {
         },
         ({ conditions }) => {
           const { mobile, touch, reduceMotion } = conditions ?? {}
-          // Keep native scrolling; reveal whole cards once without rebuilding
-          // layered scroll timelines during a phone's inertial scroll.
+          // Native scroll-driven whole-card movement, with a read-only fallback
+          // for older Safari. Text and borders always share one moving boundary.
           if (mobile || touch) {
             if (reduceMotion) return
             return revealServiceCards(intro, items.flatMap(item => {

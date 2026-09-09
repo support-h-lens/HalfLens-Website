@@ -134,10 +134,7 @@ export function CinematicStory() {
       )
     }, story)
 
-    const cancelRefresh = refreshScrollTriggerWhenReady()
-
     return () => {
-      cancelRefresh()
       media?.revert()
       context.revert()
     }

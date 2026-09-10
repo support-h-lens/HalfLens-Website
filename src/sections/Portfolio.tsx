@@ -33,7 +33,7 @@ export function Portfolio({ items = projects }: { items?: ProjectItem[] }) {
           if (mobile || touch) return
           const revealCleanups: Array<() => void> = []
 
-          projectElements.forEach((project, projectIndex) => {
+          projectElements.forEach((project) => {
             const visual = project.querySelector<HTMLElement>('.project__visual')
             const surface = project.querySelector<HTMLElement>('.project__media-surface')
             const details = project.querySelector<HTMLElement>('.project__details')
@@ -83,8 +83,6 @@ export function Portfolio({ items = projects }: { items?: ProjectItem[] }) {
               surface.style.willChange = 'transform'
               details.style.willChange = 'transform, opacity'
 
-              const detailsX = mobile ? 0 : projectIndex % 2 === 0 ? -28 : 28
-
               revealTimeline = gsap
                 .timeline({
                   defaults: { ease: 'none' },
@@ -114,7 +112,7 @@ export function Portfolio({ items = projects }: { items?: ProjectItem[] }) {
                 )
                 .fromTo(
                   details,
-                  { autoAlpha: 0, x: detailsX, y: mobile ? 18 : 0 },
+                  { autoAlpha: 0, x: 0, y: 18 },
                   { autoAlpha: 1, x: 0, y: 0, duration: 0.72, ease: 'power3.out' },
                   0.08,
                 )
@@ -173,7 +171,7 @@ export function Portfolio({ items = projects }: { items?: ProjectItem[] }) {
     <section
       ref={sectionRef}
       id="portfolio"
-      className="portfolio light-section"
+      className="portfolio portfolio--showcase light-section"
       aria-labelledby="portfolio-title"
     >
       <div className="layout-container portfolio__heading">
@@ -189,15 +187,19 @@ export function Portfolio({ items = projects }: { items?: ProjectItem[] }) {
         </p>
       </div>
 
-      <div className="portfolio__projects">
+      <div className="layout-container portfolio__projects">
         {items.map((project, index) => {
+          const projectHref = `/work/${encodeURIComponent(project.slug)}/`
+          const category = project.category.split('·').map(part => part.trim())
+            .filter(part => part !== project.client).join(' · ') || project.category
 
           return (
             <article
               ref={(element) => {
                 projectRefs.current[index] = element
               }}
-              className={`project project--layout-${(index % 4) + 1}`}
+              className="project"
+              aria-labelledby={`selected-work-${project.slug}`}
               key={project.id}
             >
               <div className="project__layout">
@@ -217,72 +219,54 @@ export function Portfolio({ items = projects }: { items?: ProjectItem[] }) {
                         posterUrl={project.youtube.poster}
                         title={project.title}
                         videoId={project.youtube.id}
+                        watchUrl={project.youtube.url}
                       />
+                    ) : project.image ? (
+                      <a className="project__image-link" href={projectHref} aria-label={`استكشف مشروع ${project.title}`}>
+                        <img src={project.image} alt="" loading="lazy" decoding="async" />
+                      </a>
                     ) : (
-                      <>
-                        <span className="project__grain" aria-hidden="true" />
-                        <span className="project__shape project__shape--one" aria-hidden="true" />
-                        <span className="project__shape project__shape--two" aria-hidden="true" />
-                        <span className="project__frame project__frame--top" aria-hidden="true">
-                          FRAME / {project.id}
-                        </span>
-                        <span className="project__frame project__frame--bottom" aria-hidden="true">
-                          MASTER · 4K
-                        </span>
-                        <span className="project__placeholder" dir="ltr">
-                          PROJECT MEDIA · {project.id}
-                        </span>
-                      </>
+                      <a className="project__image-link project__placeholder-link" href={projectHref}>
+                        <span dir="ltr">HALF LENS / {project.id}</span>
+                        <strong>{project.title}</strong>
+                        <span>استكشف المشروع <ArrowIcon /></span>
+                      </a>
                     )}
-                  </div>
-                  <div className="project__focus-frame" aria-hidden="true">
-                    <span className="project__focus-corner project__focus-corner--one" />
-                    <span className="project__focus-corner project__focus-corner--two" />
-                    <span className="project__focus-corner project__focus-corner--three" />
-                    <span className="project__focus-corner project__focus-corner--four" />
-                    <span className="project__focus-cut" />
-                  </div>
-                  <div className="project__edge-meta" aria-hidden="true">
-                    <span dir="ltr">HL / {project.id}</span>
-                    <span>{project.client}</span>
                   </div>
                 </div>
 
                 <a
                   className="project__details"
                   data-project={project.id}
-                  href={`/work/${encodeURIComponent(project.slug)}/`}
+                  href={projectHref}
+                  aria-labelledby={`selected-work-${project.slug} selected-work-action-${project.slug}`}
                 >
-                  <div className="project__status" aria-hidden="true" dir="ltr">
-                    <span>
-                      <i />
-                      H-LENS SELECTED
-                    </span>
-                    <span>{project.id} / {String(items.length).padStart(2, '0')}</span>
+                  <div className="project__status">
+                    <span className="project__category">{category}</span>
+                    <span className="project__sequence" dir="ltr" aria-hidden="true">{String(index + 1).padStart(2, '0')} / {String(items.length).padStart(2, '0')}</span>
                   </div>
 
                   <div className="project__title-group">
-                    <p className="project__kicker">المشروع {project.id} / {project.category}</p>
-                    <h3>{project.title}</h3>
+                    <h3 id={`selected-work-${project.slug}`}>{project.title}</h3>
                   </div>
 
                   <dl className="project__metadata">
-                    <div>
+                    <div className="project__credit-client">
                       <dt>العميل</dt>
                       <dd>{project.client}</dd>
                     </div>
-                    <div>
+                    <div className="project__credit-year">
+                      <dt>السنة</dt>
+                      <dd dir="ltr">{project.year}</dd>
+                    </div>
+                    <div className="project__credit-role">
                       <dt>دور هاف لينس</dt>
                       <dd>{project.role}</dd>
-                    </div>
-                    <div>
-                      <dt>السنة</dt>
-                      <dd>{project.year}</dd>
                     </div>
                   </dl>
 
                   <div className="project__meta">
-                      <span>شاهد المشروع</span>
+                    <span id={`selected-work-action-${project.slug}`}>تفاصيل المشروع</span>
                     <span className="project__arrow" aria-hidden="true">
                       <ArrowIcon />
                     </span>

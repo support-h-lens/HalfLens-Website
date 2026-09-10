@@ -5,6 +5,7 @@ interface YouTubeHoverMediaProps {
   title: string
   videoId: string
   eager?: boolean
+  watchUrl?: string
 }
 
 export function YouTubeHoverMedia({
@@ -12,6 +13,7 @@ export function YouTubeHoverMedia({
   title,
   videoId,
   eager = false,
+  watchUrl,
 }: YouTubeHoverMediaProps) {
   const playerRef = useRef<HTMLIFrameElement>(null)
   const [isHovered, setIsHovered] = useState(false)
@@ -132,7 +134,16 @@ export function YouTubeHoverMedia({
           onLoad={handlePlayerLoad}
         />
       ) : null}
-
+      {watchUrl ? (
+        <a className="project-video__open" href={watchUrl} target="_blank" rel="noreferrer" aria-label={`شاهد فيلم ${title} (يفتح في نافذة جديدة)`}>
+          <span className="project-video__watch" aria-hidden="true">
+            <span className="project-video__play">
+              <svg viewBox="0 0 24 24" fill="none"><path d="m9 5 11 7-11 7V5Z" fill="currentColor" /></svg>
+            </span>
+            <span>شاهد الفيلم</span>
+          </span>
+        </a>
+      ) : null}
     </div>
   )
 }

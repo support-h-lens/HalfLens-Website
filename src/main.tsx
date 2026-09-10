@@ -11,6 +11,7 @@ import App from './App'
 import './styles/global.css'
 import './styles/brand-redesign.css'
 import './styles/editorial-motion.css'
+import './styles/featured-work.css'
 import type { PublicWebsiteContent } from './lib/cmsContent'
 import { installStableViewport } from './lib/stableViewport'
 

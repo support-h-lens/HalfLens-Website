@@ -293,7 +293,7 @@ html {
 }
 
 .hero__viewfinder {
-  inset: calc(var(--nav-height) + 14px) 0 clamp(28px, 4vh, 52px);
+  inset: calc(var(--nav-height) + 14px) 0 clamp(28px, calc(4 * var(--layout-vh, 1vh)), 52px);
   border-color: rgba(136, 152, 203, 0.13);
 }
 
@@ -355,7 +355,7 @@ html {
 
 .hero__actions {
   gap: 24px;
-  margin-block-start: clamp(26px, 3vh, 42px);
+  margin-block-start: clamp(26px, calc(3 * var(--layout-vh, 1vh)), 42px);
 }
 
 .hero__actions .text-link {
@@ -553,7 +553,7 @@ html {
 }
 
 .project__layout {
-  min-height: min(82vh, 900px);
+  min-height: min(calc(82 * var(--layout-vh, 1vh)), 900px);
 }
 
 .project__visual {
@@ -878,19 +878,19 @@ html {
 
 .work-page,
 .project-page {
-  min-height: 100vh;
+  min-height: calc(100 * var(--layout-vh, 1vh));
   background: var(--hl-ice);
 }
 
 .work-hero {
-  min-height: 78vh;
-  padding-block: clamp(170px, 18vh, 240px) clamp(70px, 9vh, 120px);
+  min-height: calc(78 * var(--layout-vh, 1vh));
+  padding-block: clamp(170px, calc(18 * var(--layout-vh, 1vh)), 240px) clamp(70px, calc(9 * var(--layout-vh, 1vh)), 120px);
   color: var(--hl-navy);
 }
 
 .work-hero h1 {
   max-width: 15ch;
-  margin-block: clamp(26px, 5vh, 64px);
+  margin-block: clamp(26px, calc(5 * var(--layout-vh, 1vh)), 64px);
   color: var(--hl-cinema);
   font-size: var(--text-display);
   font-weight: 600;
@@ -930,7 +930,7 @@ html {
 .work-index__item > a {
   display: grid;
   grid-template-columns: minmax(0, 1.65fr) minmax(320px, 0.8fr);
-  min-height: min(76vh, 780px);
+  min-height: min(calc(76 * var(--layout-vh, 1vh)), 780px);
 }
 
 .work-index__item:nth-child(even) .work-index__media {
@@ -1067,7 +1067,7 @@ html {
 
 .project-hero {
   position: relative;
-  min-height: 100svh;
+  min-height: calc(100 * var(--layout-svh, 1svh));
   color: var(--hl-off-white);
   background: var(--hl-cinema);
 }
@@ -1087,12 +1087,12 @@ html {
 
 .project-hero__copy {
   position: absolute;
-  inset: auto 0 clamp(56px, 8vh, 110px);
+  inset: auto 0 clamp(56px, calc(8 * var(--layout-vh, 1vh)), 110px);
   z-index: 3;
 }
 
 .project-hero__category {
-  margin-block: clamp(28px, 4vh, 54px) 14px;
+  margin-block: clamp(28px, calc(4 * var(--layout-vh, 1vh)), 54px) 14px;
   color: rgba(234, 242, 244, 0.72);
   font-size: var(--text-lg);
 }
@@ -1146,7 +1146,7 @@ html {
 .next-project {
   position: relative;
   display: grid;
-  min-height: 58vh;
+  min-height: calc(58 * var(--layout-vh, 1vh));
   place-content: center;
   padding: var(--grid-gutter);
   color: var(--hl-off-white);
@@ -1201,7 +1201,7 @@ html {
 
 .not-found {
   display: flex;
-  min-height: 100svh;
+  min-height: calc(100 * var(--layout-svh, 1svh));
   align-items: flex-start;
   justify-content: center;
   flex-direction: column;
@@ -1213,7 +1213,7 @@ html {
 
 .not-found .brand-logo {
   width: 120px;
-  margin-block-end: clamp(50px, 8vh, 90px);
+  margin-block-end: clamp(50px, calc(8 * var(--layout-vh, 1vh)), 90px);
 }
 
 .not-found h1 {
@@ -1300,7 +1300,7 @@ html {
   }
 
   .hero__copy {
-    inset-block: auto clamp(102px, 13svh, 128px);
+    inset-block: auto clamp(102px, calc(13 * var(--layout-svh, 1svh)), 128px);
     inset-inline-start: 18px;
     left: auto;
     right: 18px;
@@ -1440,7 +1440,7 @@ html {
   }
 
   .work-hero {
-    min-height: 70svh;
+    min-height: calc(70 * var(--layout-svh, 1svh));
     padding-block: 130px 62px;
   }
 
@@ -1501,7 +1501,7 @@ html {
   }
 
   .project-hero {
-    min-height: 86svh;
+    min-height: calc(86 * var(--layout-svh, 1svh));
   }
 
   .project-hero__copy {
@@ -1527,7 +1527,7 @@ html {
   }
 
   .next-project {
-    min-height: 52svh;
+    min-height: calc(52 * var(--layout-svh, 1svh));
   }
 
   .not-found {
@@ -2005,13 +2005,13 @@ html {
 }
 
 .hero__actions {
-  margin-block-start: clamp(30px, 4vh, 52px);
+  margin-block-start: clamp(30px, calc(4 * var(--layout-vh, 1vh)), 52px);
 }
 
 .hero__profile-link {
   top: auto;
   right: auto;
-  bottom: clamp(72px, 9vh, 112px);
+  bottom: clamp(72px, calc(9 * var(--layout-vh, 1vh)), 112px);
   left: clamp(12px, 2vw, 38px);
   grid-template-columns: 92px minmax(0, 1fr);
   width: min(286px, 23vw);
@@ -2089,7 +2089,7 @@ html {
 
 /* The name becomes a real brand scene, not another floating text card. */
 .story {
-  height: 170svh;
+  height: calc(170 * var(--layout-svh, 1svh));
   min-height: 1180px;
 }
 
@@ -2159,8 +2159,8 @@ html {
   display: grid;
   align-content: center;
   width: 100%;
-  min-height: 110svh;
-  padding-block: 12svh;
+  min-height: calc(110 * var(--layout-svh, 1svh));
+  padding-block: calc(12 * var(--layout-svh, 1svh));
 }
 
 .services__intro::before {
@@ -2187,7 +2187,7 @@ html {
 .services__section-name-mask {
   position: relative;
   width: fit-content;
-  margin-block: clamp(24px, 4vh, 52px) 0;
+  margin-block: clamp(24px, calc(4 * var(--layout-vh, 1vh)), 52px) 0;
 }
 
 .services__section-name {
@@ -2202,7 +2202,7 @@ html {
   position: relative;
   width: min(100%, 780px);
   height: 1px;
-  margin-block: clamp(28px, 4vh, 54px);
+  margin-block: clamp(28px, calc(4 * var(--layout-vh, 1vh)), 54px);
   background: linear-gradient(90deg, var(--hl-mint), var(--hl-blue-secondary), transparent);
   transform-origin: right;
 }
@@ -2240,8 +2240,8 @@ html {
   display: flex;
   align-items: center;
   width: 100%;
-  min-height: 108svh;
-  padding-block: 12svh;
+  min-height: calc(108 * var(--layout-svh, 1svh));
+  padding-block: calc(12 * var(--layout-svh, 1svh));
 }
 
 .service-item__geometry {
@@ -2285,7 +2285,7 @@ html {
   display: block;
   width: 100%;
   height: 1px;
-  margin-block-end: clamp(26px, 4vh, 52px);
+  margin-block-end: clamp(26px, calc(4 * var(--layout-vh, 1vh)), 52px);
   background: linear-gradient(90deg, var(--hl-mint), var(--hl-blue-secondary), transparent 88%);
   transform-origin: right;
 }
@@ -2320,7 +2320,7 @@ html {
 }
 
 .service-item__title-mask {
-  margin-block: clamp(34px, 5vh, 68px) clamp(20px, 3vh, 34px);
+  margin-block: clamp(34px, calc(5 * var(--layout-vh, 1vh)), 68px) clamp(20px, calc(3 * var(--layout-vh, 1vh)), 34px);
 }
 
 .service-item h3 {
@@ -2347,7 +2347,7 @@ html {
   align-items: center;
   gap: 16px;
   width: min(100%, 420px);
-  margin-block-start: clamp(44px, 7vh, 82px);
+  margin-block-start: clamp(44px, calc(7 * var(--layout-vh, 1vh)), 82px);
   color: rgba(234, 242, 244, 0.46);
   font-family: var(--font-technical);
   font-size: var(--text-xs);
@@ -2371,8 +2371,8 @@ html {
 .services__production-map-wrap {
   position: relative;
   inset: auto;
-  min-height: 78svh;
-  padding-block: 18svh 12svh;
+  min-height: calc(78 * var(--layout-svh, 1svh));
+  padding-block: calc(18 * var(--layout-svh, 1svh)) calc(12 * var(--layout-svh, 1svh));
 }
 
 .services__production-track {
@@ -2387,8 +2387,8 @@ html {
 .services__outro {
   position: relative;
   inset: auto;
-  margin-block-start: -10svh;
-  padding-block: 22px 8svh;
+  margin-block-start: calc(-10 * var(--layout-svh, 1svh));
+  padding-block: 22px calc(8 * var(--layout-svh, 1svh));
   border-color: var(--hl-line-muted);
 }
 
@@ -2401,7 +2401,7 @@ html {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
-  min-height: 46svh;
+  min-height: calc(46 * var(--layout-svh, 1svh));
 }
 
 .portfolio__heading .section-heading {
@@ -2429,16 +2429,16 @@ html {
 .project__layout {
   display: grid;
   grid-template-columns: minmax(0, 1.65fr) minmax(330px, 0.68fr);
-  min-height: min(88svh, 960px);
+  min-height: min(calc(88 * var(--layout-svh, 1svh)), 960px);
 }
 
 .project__visual {
-  min-height: 68svh;
+  min-height: calc(68 * var(--layout-svh, 1svh));
 }
 
 .project__details {
   align-content: space-between;
-  min-height: 68svh;
+  min-height: calc(68 * var(--layout-svh, 1svh));
   padding: clamp(34px, 4vw, 76px);
   border: 1px solid var(--line-light);
 }
@@ -2460,7 +2460,7 @@ html {
 }
 
 .project--layout-3 .project__visual {
-  min-height: min(86svh, 980px);
+  min-height: min(calc(86 * var(--layout-svh, 1svh)), 980px);
 }
 
 .project--layout-3 .project__details {
@@ -2511,7 +2511,7 @@ html {
 .clients__heading {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  min-height: 42svh;
+  min-height: calc(42 * var(--layout-svh, 1svh));
 }
 
 .clients__heading .section-heading h2 {
@@ -2631,7 +2631,7 @@ html {
 }
 
 .contact__form-column {
-  padding-block-start: clamp(80px, 12vh, 140px);
+  padding-block-start: clamp(80px, calc(12 * var(--layout-vh, 1vh)), 140px);
 }
 
 .contact__path-tabs,
@@ -2668,7 +2668,7 @@ html {
 
 .footer__top {
   grid-template-columns: minmax(220px, 0.8fr) minmax(350px, 1fr) minmax(380px, 1.25fr);
-  min-height: 54svh;
+  min-height: calc(54 * var(--layout-svh, 1svh));
   align-items: center;
 }
 
@@ -2752,7 +2752,7 @@ html {
 
 @media (max-width: 720px) {
   .hero__copy {
-    inset-block-end: clamp(118px, 15svh, 148px);
+    inset-block-end: clamp(118px, calc(15 * var(--layout-svh, 1svh)), 148px);
     inset-inline: 18px auto;
     width: min(88vw, 352px);
   }
@@ -2791,7 +2791,7 @@ html {
   }
 
   .story {
-    height: 245svh;
+    height: calc(245 * var(--layout-svh, 1svh));
   }
 
   .story__statement,
@@ -2823,7 +2823,7 @@ html {
   }
 
   .services__intro {
-    min-height: 105svh;
+    min-height: calc(105 * var(--layout-svh, 1svh));
     padding-inline: 0;
   }
 
@@ -2843,8 +2843,8 @@ html {
 
   .service-item,
   .service-item:nth-child(n) {
-    min-height: 102svh;
-    padding-block: 14svh;
+    min-height: calc(102 * var(--layout-svh, 1svh));
+    padding-block: calc(14 * var(--layout-svh, 1svh));
   }
 
   .service-item__geometry {
@@ -2890,8 +2890,8 @@ html {
   }
 
   .services__production-map-wrap {
-    min-height: 52svh;
-    padding-block: 14svh;
+    min-height: calc(52 * var(--layout-svh, 1svh));
+    padding-block: calc(14 * var(--layout-svh, 1svh));
   }
 
   .services__production-map {
@@ -2939,7 +2939,7 @@ html {
 
   .project__visual,
   .project--layout-3 .project__visual {
-    min-height: 48svh;
+    min-height: calc(48 * var(--layout-svh, 1svh));
   }
 
   .project__details,
@@ -3259,13 +3259,13 @@ html {
 
 /* Indexable company routes share the public visual language without the cinematic scroll shell. */
 .content-page {
-  min-height: 100vh;
+  min-height: calc(100 * var(--layout-vh, 1vh));
   background: var(--brand-navy, #111638);
   color: var(--brand-ice, #edf4f6);
 }
 
 .content-page__hero {
-  min-height: min(76vh, 52rem);
+  min-height: min(calc(76 * var(--layout-vh, 1vh)), 52rem);
   display: grid;
   align-content: end;
   grid-template-columns: minmax(0, 1.35fr) minmax(18rem, .65fr);

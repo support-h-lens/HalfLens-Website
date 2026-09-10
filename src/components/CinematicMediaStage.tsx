@@ -17,6 +17,7 @@ interface CinematicMediaStageProps {
   active?: boolean
   posterSrc?: string
   portraitPosterSrc?: string
+  isPortrait?: boolean
   initialTime?: number
   onVideoReady?: (state: CinematicVideoReadyState | null) => void
   onPlaybackBlocked?: (blocked: boolean) => void
@@ -35,6 +36,7 @@ export const CinematicMediaStage = forwardRef<
     active = true,
     posterSrc,
     portraitPosterSrc,
+    isPortrait,
     initialTime,
     onVideoReady,
     onPlaybackBlocked,
@@ -91,8 +93,8 @@ export const CinematicMediaStage = forwardRef<
 
       {posterSrc ? (
         <picture className="cinematic-media-stage__poster" aria-hidden="true">
-          {portraitPosterSrc ? <source media="(orientation: portrait)" srcSet={portraitPosterSrc} /> : null}
-          <img src={posterSrc} alt="" fetchPriority="high" />
+          {portraitPosterSrc && isPortrait === undefined ? <source media="(orientation: portrait)" srcSet={portraitPosterSrc} /> : null}
+          <img src={isPortrait && portraitPosterSrc ? portraitPosterSrc : posterSrc} alt="" fetchPriority="high" />
         </picture>
       ) : null}
 

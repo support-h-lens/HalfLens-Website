@@ -6,6 +6,7 @@ import { gsap, refreshScrollTriggerWhenReady, ScrollTrigger } from '../lib/gsap'
 import { Hero } from '../sections/Hero'
 import { Services } from '../sections/Services'
 import { CinematicMediaStage } from './CinematicMediaStage'
+import { layoutViewportHeight } from '../lib/stableViewport'
 
 export function CinematicStory() {
   const storyRef = useRef<HTMLDivElement>(null)
@@ -55,8 +56,8 @@ export function CinematicStory() {
             opacity: 0, ease: 'none',
             scrollTrigger: {
               trigger: chapters,
-              start: () => `bottom bottom+=${Math.min(260, Math.max(140, window.innerHeight * .24))}`,
-              end: 'bottom bottom', scrub: true, invalidateOnRefresh: true,
+              start: () => `bottom top+=${layoutViewportHeight() + Math.min(260, Math.max(140, layoutViewportHeight() * .24))}`,
+              end: () => `bottom top+=${layoutViewportHeight()}`, scrub: true, invalidateOnRefresh: true,
             },
           })
         }
@@ -117,7 +118,7 @@ export function CinematicStory() {
             // The sticky stage's final-frame hold is outside this timeline.
             trigger: chapters,
             start: 'top top',
-            end: 'bottom bottom',
+            end: () => `bottom top+=${layoutViewportHeight()}`,
             scrub: true,
             invalidateOnRefresh: true,
             onUpdate: ({ progress }) => scheduler.setProgress(progress),
@@ -159,6 +160,7 @@ export function CinematicStory() {
           active={videoSource.isActive}
           posterSrc={cinematicFilm.poster}
           portraitPosterSrc={cinematicFilm.mobilePoster}
+          isPortrait={videoSource.src ? videoSource.isPortrait : undefined}
           initialTime={cinematicFilm.initialTime}
           onVideoReady={setReadyVideo}
           onPlaybackBlocked={setNeedsVideoTap}

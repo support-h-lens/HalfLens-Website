@@ -7,7 +7,7 @@
    Keep the control reachable while reading services, outside the fading hero. */
 .cinematic-story__recovery {
   position: sticky;
-  top: calc(100svh - max(88px, env(safe-area-inset-bottom, 0px) + 64px));
+  top: calc(calc(100 * var(--layout-svh, 1svh)) - max(88px, env(safe-area-inset-bottom, 0px) + 64px));
   height: 0;
   z-index: 5;
   display: flex;
@@ -156,11 +156,11 @@
 .lens-field__hint { color: var(--hl-soft-blue); }
 
 /* Retain cinematic chapter masks and reveals, with a more deliberate cadence. */
-.services__intro { min-height: 88svh; padding-block: 10svh; }
+.services__intro { min-height: calc(88 * var(--layout-svh, 1svh)); padding-block: calc(10 * var(--layout-svh, 1svh)); }
 .services__intro::before { opacity: .4; }
 .services__section-name { font-size: clamp(5rem, 10vw, 12rem); line-height: 1.2; }
 .services__intro-statement { line-height: 1.4; max-width: 19ch; }
-.service-item, .service-item:nth-child(n) { min-height: 82svh; padding-block: 10svh; }
+.service-item, .service-item:nth-child(n) { min-height: calc(82 * var(--layout-svh, 1svh)); padding-block: calc(10 * var(--layout-svh, 1svh)); }
 .service-item__frame {
   --service-frame-padding: clamp(24px, 2.6vw, 40px);
   position: relative;
@@ -203,14 +203,14 @@
 .service-item__title-mask { margin-block: 24px 16px; }
 .service-item__link { margin-block-start: 16px; color: var(--hl-ice); gap: 36px; font-size: .85rem; }
 .service-item__progress { margin-block-start: 22px; width: min(100%, 360px); }
-.services__production-map-wrap { min-height: 45svh; padding-block: 10svh; }
+.services__production-map-wrap { min-height: calc(45 * var(--layout-svh, 1svh)); padding-block: calc(10 * var(--layout-svh, 1svh)); }
 .services__outro { margin-block-start: 0; }
 
 /* Finish the chapter timeline, hold its final frame, then let the work sheet
    cover the still-sticky film. The overlap is not part of video scrubbing. */
-.cinematic-story__tail { height: calc(100svh + clamp(200px, 28svh, 360px)); }
+.cinematic-story__tail { height: calc(calc(100 * var(--layout-svh, 1svh)) + clamp(200px, calc(28 * var(--layout-svh, 1svh)), 360px)); }
 .services__layout:focus-within { opacity: 1 !important; }
-.portfolio-rise { margin-block-start: -100svh; }
+.portfolio-rise { margin-block-start: calc(-100 * var(--layout-svh, 1svh)); }
 .portfolio-rise__edge {
   position: absolute;
   z-index: 1;
@@ -221,10 +221,10 @@
   pointer-events: none;
 }
 .portfolio-rise__panel { width: 100%; border-radius: 0; box-shadow: none; }
-.portfolio-rise__panel .portfolio { padding-block-start: clamp(48px, 7svh, 96px); }
+.portfolio-rise__panel .portfolio { padding-block-start: clamp(48px, calc(7 * var(--layout-svh, 1svh)), 96px); }
 
 /* A quieter title and a film archive with the same hover / keyboard treatment. */
-.portfolio__heading { padding-block-end: 60px; min-height: 32svh; }
+.portfolio__heading { padding-block-end: 60px; min-height: calc(32 * var(--layout-svh, 1svh)); }
 .portfolio__heading .section-heading h2 { max-width: 11ch; font-size: clamp(4rem, 7.6vw, 8.5rem); line-height: 1.32; }
 .project-index { padding-block-start: clamp(48px, 7vw, 110px); }
 .project-index__list { margin: 22px 0 0; padding: 0; list-style: none; }
@@ -260,7 +260,7 @@
 
 /* The full index has its own page; the homepage keeps selected projects only. */
 .work-page--editorial { color: var(--hl-navy); }
-.work-page--editorial .work-hero { min-height: 0; padding-block: clamp(146px, 16vh, 190px) 48px; }
+.work-page--editorial .work-hero { min-height: 0; padding-block: clamp(146px, calc(16 * var(--layout-vh, 1vh)), 190px) 48px; }
 .work-page--editorial .work-hero h1 { margin-block: 24px 36px; color: var(--hl-navy); font-size: clamp(3.5rem, 5.8vw, 6.5rem); line-height: 1.4; font-weight: 500; }
 .work-page--editorial .work-hero__footer { align-items: center; gap: 24px; }
 .work-page--editorial .work-hero__footer p { margin: 0; font-size: 1rem; line-height: 1.9; }
@@ -354,17 +354,17 @@
   .story--editorial .story__stat-value { font-size: 6rem; }
   .story--editorial .story__stat-supporting { max-width: none; }
   .story__colophon { font-size: .45rem; margin-block-start: 30px; }
-  .services__intro { min-height: 90svh; padding-block: 14svh 10svh; }
+  .services__intro { min-height: calc(90 * var(--layout-svh, 1svh)); padding-block: calc(14 * var(--layout-svh, 1svh)) calc(10 * var(--layout-svh, 1svh)); }
   .services__intro-statement { font-size: clamp(2rem, 8.5vw, 3rem); line-height: 1.45; }
   .services__section-name { font-size: clamp(4.5rem, 22vw, 7rem); }
-  .service-item, .service-item:nth-child(n) { min-height: 94svh; padding-block: 14svh; }
+  .service-item, .service-item:nth-child(n) { min-height: calc(94 * var(--layout-svh, 1svh)); padding-block: calc(14 * var(--layout-svh, 1svh)); }
   /* Only the inner frame is a card. The outer item supplies scroll spacing,
      not the legacy full-height gradient panel behind that card. */
   .service-item { border: 0; background: none; }
   .service-item__frame { width: 100%; --service-frame-padding: 24px; }
   .service-item h3 { font-size: clamp(1.85rem, 7.5vw, 2.75rem); }
   .service-item__number { font-size: 3.5rem; }
-  .services__production-map-wrap { min-height: 38svh; }
+  .services__production-map-wrap { min-height: calc(38 * var(--layout-svh, 1svh)); }
   .portfolio__heading .section-heading h2 { font-size: clamp(3.1rem, 15vw, 5.8rem); line-height: 1.4; max-width: 11ch; }
   .portfolio__heading { padding-block-end: 24px; }
   .project-index__row { grid-template-columns: 20px minmax(0, 1fr) 64px 18px; min-height: 114px; padding: 18px 0; gap: 10px; }
@@ -433,6 +433,9 @@
     [data-service-motion="native"] {
       view-timeline-name: --service-arrival;
       view-timeline-axis: block;
+      /* Pin the animation's viewport too: otherwise toolbar changes remap
+         the card's progress even when its document geometry is unchanged. */
+      view-timeline-inset: 0 calc(100% - 100 * var(--layout-svh, 1svh));
       animation: service-card-arrive 1s cubic-bezier(.33, 1, .68, 1) both;
       animation-timeline: --service-arrival;
       animation-range: entry 0% entry 100%;

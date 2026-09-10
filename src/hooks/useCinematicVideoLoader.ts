@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { isLayoutPortrait, layoutViewportEvent } from '../lib/stableViewport'
 
 type VideoPreload = 'none' | 'auto'
 
@@ -43,12 +44,19 @@ const initialSource: CinematicVideoSource = {
 const cinematicCacheName = 'h-lens-cinematic-v1'
 
 const portraitMediaQuery = '(orientation: portrait)'
-const getIsPortrait = () => window.matchMedia(portraitMediaQuery).matches
+const getIsPortrait = isLayoutPortrait
 const getServerIsPortrait = () => false
 function subscribeToOrientation(onChange: () => void) {
   const query = window.matchMedia(portraitMediaQuery)
-  query.addEventListener('change', onChange)
-  return () => query.removeEventListener('change', onChange)
+  const changed = () => {
+    if (document.documentElement.dataset.layoutPortrait === undefined) onChange()
+  }
+  query.addEventListener('change', changed)
+  window.addEventListener(layoutViewportEvent, onChange)
+  return () => {
+    query.removeEventListener('change', changed)
+    window.removeEventListener(layoutViewportEvent, onChange)
+  }
 }
 
 function markOnce(name: string) {

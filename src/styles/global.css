@@ -62,7 +62,7 @@ html {
 body {
   margin: 0;
   min-width: 320px;
-  min-height: 100vh;
+  min-height: calc(100 * var(--layout-vh, 1vh));
   overflow-x: hidden;
   font-family: var(--font-arabic);
   font-size: var(--text-body);
@@ -479,7 +479,7 @@ ol {
   display: grid;
   grid-template-columns: 38px 1fr auto;
   align-items: center;
-  min-height: clamp(56px, 9vh, 82px);
+  min-height: clamp(56px, calc(9 * var(--layout-vh, 1vh)), 82px);
   border-block-end: 1px solid var(--line-dark);
   font-size: clamp(1.65rem, 5vw, 2.2rem);
   font-weight: 400;
@@ -506,7 +506,7 @@ ol {
 /* Cinematic narrative */
 .cinematic-story {
   position: relative;
-  height: 480svh;
+  height: calc(480 * var(--layout-svh, 1svh));
   min-height: 3000px;
   overflow: clip;
   background-color: var(--color-navy-base);
@@ -542,7 +542,7 @@ ol {
   position: absolute;
   inset: auto 0 0;
   z-index: 3;
-  height: clamp(54px, 8vh, 84px);
+  height: clamp(54px, calc(8 * var(--layout-vh, 1vh)), 84px);
   background: linear-gradient(
     180deg,
     transparent 0%,
@@ -558,7 +558,7 @@ ol {
   inset-block-start: 0;
   z-index: 1;
   display: grid;
-  height: 100svh;
+  height: calc(100 * var(--layout-svh, 1svh));
   place-items: center;
   pointer-events: none;
 }
@@ -566,7 +566,7 @@ ol {
 .cinematic-story__chapters {
   position: relative;
   z-index: 2;
-  margin-block-start: -100svh;
+  margin-block-start: calc(-100 * var(--layout-svh, 1svh));
 }
 
 .cinematic-chapter {
@@ -576,7 +576,7 @@ ol {
 
 .hero {
   position: relative;
-  height: 100svh;
+  height: calc(100 * var(--layout-svh, 1svh));
   min-height: 700px;
 }
 
@@ -591,12 +591,12 @@ ol {
 }
 
 .story {
-  height: 145svh;
+  height: calc(145 * var(--layout-svh, 1svh));
   min-height: 980px;
 }
 
 .services {
-  height: 235svh;
+  height: calc(235 * var(--layout-svh, 1svh));
   min-height: 1500px;
 }
 
@@ -649,7 +649,7 @@ ol {
 
 .cinematic-media-stage.cinematic-media-stage--fullscreen {
   width: 100vw;
-  height: 100svh;
+  height: calc(100 * var(--layout-svh, 1svh));
   aspect-ratio: auto;
   opacity: 1;
 }
@@ -828,7 +828,7 @@ ol {
 
 .hero__viewfinder {
   position: absolute;
-  inset: clamp(88px, 11vh, 126px) clamp(22px, 2.6vw, 48px) clamp(54px, 7vh, 78px);
+  inset: clamp(88px, calc(11 * var(--layout-vh, 1vh)), 126px) clamp(22px, 2.6vw, 48px) clamp(54px, calc(7 * var(--layout-vh, 1vh)), 78px);
   z-index: 1;
   color: rgba(238, 236, 229, 0.28);
   font-family: var(--font-technical);
@@ -1155,7 +1155,7 @@ ol {
 
 .scroll-cue {
   position: absolute;
-  inset: auto 50% 3.2vh auto;
+  inset: auto 50% calc(3.2 * var(--layout-vh, 1vh)) auto;
   display: flex;
   align-items: center;
   gap: 11px;
@@ -1518,7 +1518,7 @@ ol {
   z-index: 4;
   isolation: isolate;
   /* Keep the editorial rise, but let the final service finish before it enters. */
-  margin-block-start: -20svh;
+  margin-block-start: calc(-20 * var(--layout-svh, 1svh));
   background: transparent;
 }
 
@@ -1533,7 +1533,7 @@ ol {
 }
 
 .portfolio-rise__panel .portfolio {
-  min-height: 100svh;
+  min-height: calc(100 * var(--layout-svh, 1svh));
 }
 
 /* Lightweight chapter windows after the cinematic sequence */
@@ -2805,7 +2805,7 @@ ol {
   position: absolute;
   z-index: 40;
   inset: calc(100% + 8px) 0 auto;
-  max-height: min(330px, 45svh);
+  max-height: min(330px, calc(45 * var(--layout-svh, 1svh)));
   margin: 0;
   padding: 8px;
   border: 1px solid rgba(208, 218, 222, 0.18);
@@ -2894,7 +2894,7 @@ ol {
 }
 
 .career-specialty-select__options {
-  max-height: min(420px, 52svh);
+  max-height: min(420px, calc(52 * var(--layout-svh, 1svh)));
   padding: 0 8px 8px;
 }
 
@@ -3232,7 +3232,7 @@ ol {
 
   .cinematic-story__sticky {
     align-items: start;
-    padding-block-start: 12svh;
+    padding-block-start: calc(12 * var(--layout-svh, 1svh));
   }
 
   .side-copy,
@@ -3241,7 +3241,7 @@ ol {
   }
 
   .hero__copy {
-    inset-block: auto 9svh;
+    inset-block: auto calc(9 * var(--layout-svh, 1svh));
     inset-inline-start: -3vw;
     width: min(66vw, 540px);
     transform: none;
@@ -3258,7 +3258,7 @@ ol {
 
   .hero__profile-link {
     top: auto;
-    bottom: 9svh;
+    bottom: calc(9 * var(--layout-svh, 1svh));
     left: calc((var(--container) - 100vw) / 2 + 8px);
     grid-template-columns: 106px minmax(0, 1fr);
     width: min(38vw, 270px);
@@ -3430,7 +3430,7 @@ ol {
   }
 
   .cinematic-story {
-    height: 460svh;
+    height: calc(460 * var(--layout-svh, 1svh));
     min-height: 2760px;
     background-color: var(--color-navy-base);
     background-image:
@@ -3452,26 +3452,26 @@ ol {
 
   .cinematic-story__sticky {
     align-items: start;
-    height: 100svh;
-    padding-block-start: 14svh;
+    height: calc(100 * var(--layout-svh, 1svh));
+    padding-block-start: calc(14 * var(--layout-svh, 1svh));
   }
 
   .cinematic-story__chapters {
-    margin-block-start: -100svh;
+    margin-block-start: calc(-100 * var(--layout-svh, 1svh));
   }
 
   .hero {
-    height: 100svh;
+    height: calc(100 * var(--layout-svh, 1svh));
     min-height: 660px;
   }
 
   .story {
-    height: 135svh;
+    height: calc(135 * var(--layout-svh, 1svh));
     min-height: 850px;
   }
 
   .services {
-    height: 225svh;
+    height: calc(225 * var(--layout-svh, 1svh));
     min-height: 1350px;
   }
 
@@ -3485,7 +3485,7 @@ ol {
   }
 
   .portfolio-rise {
-    margin-block-start: -15svh;
+    margin-block-start: calc(-15 * var(--layout-svh, 1svh));
   }
 
   .portfolio-rise__panel {
@@ -3493,7 +3493,7 @@ ol {
   }
 
   .hero__copy {
-    inset-block: auto 8svh;
+    inset-block: auto calc(8 * var(--layout-svh, 1svh));
     inset-inline-start: 0;
     width: 100%;
     padding-block-start: 80px;
@@ -3964,7 +3964,7 @@ ol {
   }
 
   .mobile-menu__links a {
-    min-height: clamp(54px, 8.2svh, 68px);
+    min-height: clamp(54px, calc(8.2 * var(--layout-svh, 1svh)), 68px);
     font-size: clamp(1.45rem, 6.2vw, 1.8rem);
   }
 
@@ -3976,7 +3976,7 @@ ol {
   .cinematic-media-stage,
   .cinematic-media-stage.cinematic-media-stage--fullscreen {
     width: 100vw;
-    height: 100svh;
+    height: calc(100 * var(--layout-svh, 1svh));
     opacity: 1;
   }
 
@@ -4008,12 +4008,12 @@ ol {
   }
 
   .hero__copy {
-    inset-block: auto max(26px, 4.2svh);
+    inset-block: auto max(26px, calc(4.2 * var(--layout-svh, 1svh)));
     inset-inline: auto;
     left: 16px;
     right: auto;
     width: min(76vw, 310px);
-    padding-block-start: clamp(82px, 13svh, 118px);
+    padding-block-start: clamp(82px, calc(13 * var(--layout-svh, 1svh)), 118px);
     background: linear-gradient(
       0deg,
       rgba(11, 10, 31, 0.98) 0%,
@@ -4184,7 +4184,7 @@ ol {
   }
 
   .portfolio-rise {
-    margin-block-start: -12svh;
+    margin-block-start: calc(-12 * var(--layout-svh, 1svh));
   }
 
   .portfolio,
